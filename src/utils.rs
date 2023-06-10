@@ -1,5 +1,38 @@
+pub mod conventions {
+    pub const PI: f64                 = std::f64::consts::PI;
+    pub const TEXTURE_PITCH: i32      = 64;
+    pub const TRANSPARENCY_COLOR: u32 = 0xFF980088;
+
+    #[derive(Default, Copy, Clone)]
+    pub enum xDir_t {
+        EAST = 1,
+        WEST = -1,
+
+        #[default]
+        NONE = 0
+    }
+
+    #[derive(Default, Copy, Clone)]
+    pub enum yDir_t {
+        NORTH = 1,
+        SOUTH = -1,
+
+        #[default]
+        NONE = 0
+    }
+
+    #[derive(Default, Copy, Clone)]
+    pub enum swivelDir_t {
+        COUNTER_CLOCKWISE = 1,
+        CLOCKWISE = -1,
+
+        #[default]
+        NONE = 0
+    }
+}
+
 pub mod vec2d {
-    use std::ops::{Add, Sub, Div, AddAssign, SubAssign, Index, IndexMut, Neg};
+    use std::ops::{Add, Sub, AddAssign, SubAssign, Index, IndexMut, Neg};
 
     /*
     =================================================
@@ -16,7 +49,7 @@ pub mod vec2d {
     =================================================
     */
 
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, Default, PartialEq)]
     pub struct Vec2D<T: ValidVecElement> {
         pub e: [T; 2]
     }
@@ -145,5 +178,50 @@ pub mod vec2d {
     pub fn Dot(v1: &Vec2D<f64>, v2: &Vec2D<f64>) -> f64 {
         return v1.x()*v2.x() + v1.y()*v2.y();
     }
-
 }
+
+pub mod ray {
+    use crate::utils::vec2d::{iVec2, Point2, Vec2};
+    use crate::utils::conventions::*;
+
+    #[derive(Default)]
+    pub struct Ray {
+        pub origin: Point2,
+        pub direction : Vec2,
+
+        pub xDir: xDir_t,
+        pub yDir: yDir_t,
+        pub xDirVec: iVec2,     // <1,0> if xDir = 1, <-1,0> if xDir = -1
+        pub yDirVec: iVec2,     // <0,1> if yDir = 1, <0,-1> if yDir = -1
+
+        pub xStep: f64,         // Amount x changes for change of 1 unit in y
+        pub yStep: f64,         // Amount y changes for change of 1 unit in x
+
+        dxConst: f64,           // Change in length along ray upon change in x of 1 unit
+        dyConst: f64,           // Change in length along ray upon change in y of 1 unit
+    }
+
+    impl Ray {
+        pub fn New(o: Point2, d: Vec2) -> Self {
+            let mut r = Ray {
+                origin:     o,
+                direction:  d.UnitVector(),
+                dxConst:    (1.0+(d.y()/d.x()).powi(2)).sqrt(),
+                dyConst:    (1.0+(d.x()/d.y()).powi(2)).sqrt(),
+                xDir:       if d.x() > 0.0 { xDir_t::EAST } else { xDir_t::WEST },
+                yDir:       if d.y() > 0.0 { yDir_t::NORTH } else { yDir_t::SOUTH },
+                ..Default::default()
+            };
+
+            r.xDirVec = iVec2::New(r.xDir as i32, 0);
+            r.yDirVec = iVec2::New(0, r.yDir as i32);
+
+            r.yStep = (r.dxConst.powi(2) - 1.0).sqrt();
+            r.xStep = (r.dyConst.powi(2) - 1.0).sqrt();
+
+            return r;
+        }
+
+    }
+}
+

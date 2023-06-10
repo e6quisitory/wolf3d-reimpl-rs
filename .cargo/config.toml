@@ -1,2 +1,2 @@
 [build]
-rustflags = ["-A", "non_camel_case_types"]
+rustflags = ["-A", "non_camel_case_types", "-A", "non_snake_case", "-A", "dead_code"]
