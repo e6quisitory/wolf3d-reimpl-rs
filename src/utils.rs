@@ -31,6 +31,22 @@ pub mod conventions {
     }
 }
 
+pub mod misc_math {
+    use crate::utils::conventions::PI;
+
+    pub fn IsInteger(f: f64) -> bool {
+        if f - f.floor() != 0.0 {
+            false
+        } else {
+            true
+        }
+    }
+
+    pub fn DegreesToRadians(degrees: f64) -> f64 {
+        degrees*PI/180.0
+    }
+}
+
 pub mod vec2d {
     use std::ops::{Add, Sub, AddAssign, SubAssign, Index, IndexMut, Neg};
 
@@ -74,34 +90,34 @@ pub mod vec2d {
 
     impl<T: ValidVecElement> Vec2D<T> {
         pub fn New(e1: T, e2: T) -> Self {
-            return Vec2D { e: [e1, e2] }
+            Vec2D { e: [e1, e2] }
         }
 
         pub fn x(&self) -> T {
-            return self.e[0];
+            self.e[0]
         }
 
         pub fn y(&self) -> T {
-            return self.e[1];
+            self.e[1]
         }
     }
 
     impl Vec2D<f64> {
         pub fn LengthSquared(&self) -> f64 {
-            return self.e[1].powi(2) + self.e[1].powi(2);
+            self.e[1].powi(2) + self.e[1].powi(2)
         }
 
         pub fn Length(&self) -> f64 {
-            return self.LengthSquared().sqrt();
+            self.LengthSquared().sqrt()
         }
 
         pub fn Rotate(&self, rad: f64) -> Self {
-            return Vec2D::New(self.e[0]*rad.cos() - self.e[1]*rad.sin(), self.e[0]*rad.sin() + self.e[1]*rad.cos());
+            Vec2D::New(self.e[0]*rad.cos() - self.e[1]*rad.sin(), self.e[0]*rad.sin() + self.e[1]*rad.cos())
         }
 
         pub fn UnitVector(&self) -> Self {
             let vectorMag = self.Length();
-            return Vec2D::New(self.e[0]/vectorMag, self.e[1]/vectorMag);
+            Vec2D::New(self.e[0]/vectorMag, self.e[1]/vectorMag)
         }
     }
 
@@ -115,13 +131,13 @@ pub mod vec2d {
         type Output = T;
 
         fn index(&self, index: usize) -> &Self::Output {
-            return &self.e[index];
+            &self.e[index]
         }
     }
 
     impl<T: ValidVecElement> IndexMut<usize> for Vec2D<T> {
         fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-            return &mut self.e[index];
+            &mut self.e[index]
         }
     }
 
@@ -143,7 +159,7 @@ pub mod vec2d {
         type Output = Self;
 
         fn neg(self) -> Self::Output {
-            return Vec2D::New(-self.e[0], - self.e[1]);
+            Vec2D::New(-self.e[0], - self.e[1])
         }
     }
 
@@ -157,7 +173,7 @@ pub mod vec2d {
         type Output = Self;
 
         fn add(self, rhs: Self) -> Self::Output {
-            return Vec2D::New(self.e[0] + rhs.e[0], self.e[1] + rhs.e[1]);
+            Vec2D::New(self.e[0] + rhs.e[0], self.e[1] + rhs.e[1])
         }
     }
 
@@ -165,7 +181,7 @@ pub mod vec2d {
         type Output = Self;
 
         fn sub(self, rhs: Self) -> Self::Output {
-            return Vec2D::New(self.e[0] - rhs.e[0], self.e[1] - rhs.e[1]);
+            Vec2D::New(self.e[0] - rhs.e[0], self.e[1] - rhs.e[1])
         }
     }
 
@@ -176,13 +192,20 @@ pub mod vec2d {
     */
 
     pub fn Dot(v1: &Vec2D<f64>, v2: &Vec2D<f64>) -> f64 {
-        return v1.x()*v2.x() + v1.y()*v2.y();
+        v1.x()*v2.x() + v1.y()*v2.y()
     }
 }
 
 pub mod ray {
     use crate::utils::vec2d::{iVec2, Point2, Vec2};
     use crate::utils::conventions::*;
+    use crate::utils::misc_math::IsInteger;
+
+    /*
+    =================================================
+        Ray struct definition
+    =================================================
+    */
 
     #[derive(Default)]
     pub struct Ray {
@@ -201,7 +224,16 @@ pub mod ray {
         dyConst: f64,           // Change in length along ray upon change in y of 1 unit
     }
 
+    /*
+    =================================================
+        Ray methods
+    =================================================
+    */
+
     impl Ray {
+
+        /* Constructor */
+
         pub fn New(o: Point2, d: Vec2) -> Self {
             let mut r = Ray {
                 origin:     o,
@@ -222,6 +254,63 @@ pub mod ray {
             return r;
         }
 
+        /* Private methods */
+
+        fn yAt(&self, x: f64) -> f64 {
+            self.origin.y() + ((x-self.origin.x())/self.direction.x())*self.direction.y()
+        }
+
+        fn xAt(&self, y: f64) -> f64 {
+            self.origin.x() + ((y-self.origin.y())/self.direction.y())*self.direction.x()
+        }
+
+        fn nextX(&self, currPt: &Point2) -> i32 {
+            if !IsInteger(currPt.x()) {
+                match self.xDir {
+                    xDir_t::EAST => currPt.x().ceil() as i32,
+                    xDir_t::WEST => currPt.x().floor() as i32,
+                    xDir_t::NONE => -1
+                }
+            } else {
+                currPt.x() as i32 + self.xDir as i32
+            }
+        }
+
+        fn nextY(&self, currPt: &Point2) -> i32 {
+            if !IsInteger(currPt.y()) {
+                match self.yDir {
+                    yDir_t::NORTH => currPt.y().ceil() as i32,
+                    yDir_t::SOUTH => currPt.y().floor() as i32,
+                    yDir_t::NONE => -1
+                }
+            } else {
+                currPt.y() as i32 + self.yDir as i32
+            }
+        }
+
+        fn RayDist_dx(&self, dx: f64) -> f64 {
+            dx.abs()*self.dxConst
+        }
+
+        fn RayDist_dy(&self, dy: f64) -> f64 {
+            dy.abs()*self.dyConst
+        }
+
+        /* Public methods */
+
+        pub fn NextXIntrscPoint(&self, currPt: &Point2) -> Point2 {
+            let nextXVal = self.nextX(currPt) as f64;
+            Point2::New(nextXVal, self.yAt(nextXVal))
+        }
+
+        pub fn NextYIntrscPoint(&self, currPt: &Point2) -> Point2 {
+            let nextYVal = self. nextY(currPt) as f64;
+            Point2::New(self.xAt(nextYVal), nextYVal)
+        }
+
+        pub fn DistToPoint(&self, pt: &Point2) -> f64 {
+            self.RayDist_dx(pt.x() - self.origin.x())
+        }
     }
 }
 
