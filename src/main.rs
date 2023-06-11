@@ -30,4 +30,8 @@ fn main() {
     println!("{:?}", Dot(&v3, &v8));
     println!("{:?}", -v8);
 
+    let p = Point2::New(1.5, -9.5);
+    let ip: iPoint2 = iPoint2::from(p);
+    println!("{:?}", ip);
+
 }
