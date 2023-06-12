@@ -501,7 +501,7 @@ pub mod dda {
 
 }
 
-pub(crate) mod mapCSV {
+pub mod mapCSV {
     use std::error::Error;
     use std::fs::File;
 
