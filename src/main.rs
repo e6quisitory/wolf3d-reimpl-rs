@@ -92,8 +92,8 @@ fn main() {
     let fov: f64 = DegreesToRadians(80.0);
 
     // Player info
-    let mut playerPos = Point2::New(3.0, 3.0);
-    let mut playerViewDir = Point2::New(0.0, 1.0).UnitVector();
+    let mut playerPos = Point2::New(4.127, 5.033);
+    let mut playerViewDir = Point2::New(-0.019038625821465295, 0.7068504302374231).UnitVector();
 
     //Pre-calculate angles
     let mut castingRayAngles: [(f64, f64); windowWidth] = [(0.0, 0.0); windowWidth];
@@ -107,15 +107,17 @@ fn main() {
     let mut event_pump = game.context.context.event_pump().unwrap();
 
     'running: loop {
+        let playerEast = playerViewDir.Rotate(PI/2.0);
+        let playerWest = playerViewDir.Rotate(-PI/2.0);
         for event in event_pump.poll_iter() {
             match event {
                 Event::Quit {..} => { break 'running; },
-                Event::KeyDown { keycode: Some(Keycode::Left), .. } => { playerViewDir = playerViewDir.Rotate(PI/350.0) },
-                Event::KeyDown { keycode: Some(Keycode::Right), .. } => { playerViewDir = playerViewDir.Rotate(-PI/350.0) },
-                Event::KeyDown { keycode: Some(Keycode::W), .. } => { playerPos = playerPos + playerViewDir*0.1 },
-                Event::KeyDown { keycode: Some(Keycode::S), .. } => { playerPos = playerPos - playerViewDir*0.1 },
-                Event::KeyDown { keycode: Some(Keycode::D), .. } => { playerPos = playerPos - (playerViewDir.Rotate(PI/2.0))*0.025 },
-                Event::KeyDown { keycode: Some(Keycode::A), .. } => { playerPos = playerPos + (playerViewDir.Rotate(PI/2.0))*0.025 },
+                Event::KeyDown { keycode: Some(Keycode::Left), .. } => { playerViewDir = playerViewDir.Rotate((PI/20.0)*0.15); },
+                Event::KeyDown { keycode: Some(Keycode::Right), .. } => { playerViewDir = playerViewDir.Rotate((-PI/20.0)*0.15); },
+                Event::KeyDown { keycode: Some(Keycode::W), .. } => { playerPos = playerPos + playerViewDir*0.3*0.15; },
+                Event::KeyDown { keycode: Some(Keycode::S), .. } => { playerPos = playerPos - playerViewDir*0.3*0.15; },
+                Event::KeyDown { keycode: Some(Keycode::A), .. } => { playerPos = playerPos + playerEast*0.3*0.15; },
+                Event::KeyDown { keycode: Some(Keycode::D), .. } => { playerPos = playerPos + playerWest*0.3*0.15; },
 
 
                 _ => {}
@@ -130,9 +132,9 @@ fn main() {
             let mut rayCursor = RayCursor::New(currRay, playerPos);
             while (rayCursor.hitTile.x() >= 0 && rayCursor.hitTile.x() < mapWidth as i32) && (rayCursor.hitTile.y() >= 0 && rayCursor.hitTile.y() < mapHeight as i32) {
                 rayCursor.GoToNextHit();
-                if *(array.get((rayCursor.hitTile.x() as usize, rayCursor.hitTile.y() as usize)).unwrap()) == 1 {
+                if *(array.get((rayCursor.hitusTile.x() as usize, rayCursor.hitTile.y() as usize)).unwrap()) == 1 {
                     let dist = rayCursor.GetDistToHitPoint();
-                    let renderHeight = (400.0/(dist*castingRayAngles[x].1)) as usize;
+                    let renderHeight = (1000.0/(dist*castingRayAngles[x].1)) as usize;
                     if (rayCursor.GetWallType() == wallType_t::VERTICAL) {
                         canvas.set_draw_color(Color::RGBA(255, 0, 0, 255));
                     } else {
@@ -152,6 +154,7 @@ fn main() {
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
 
         println!("{:?}", playerPos);
+        println!("{:?}", playerViewDir);
     }
 }
 
