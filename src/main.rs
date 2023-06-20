@@ -4,7 +4,7 @@ use std::time::Duration;
 use ndarray::Array2;
 use utils::mapCSV::*;
 use sdl2::*;
-use sdl2::rect::Rect;
+use sdl2::rect::{Point, Rect};
 use sdl2::pixels::Color;
 use sdl2::event::Event;
 use sdl2::image::{LoadTexture, Sdl2ImageContext};
@@ -12,6 +12,11 @@ use sdl2::keyboard::Keycode;
 use sdl2::render::{TextureCreator, WindowCanvas};
 use sdl2::video::{Window, WindowContext};
 use std::error::Error;
+use crate::utils::conventions::PI;
+use crate::utils::dda::RayCursor;
+use crate::utils::misc_math::DegreesToRadians;
+use crate::utils::ray::Ray;
+use crate::utils::vec2d::Point2;
 
 pub struct SdlContext {
     context: sdl2::Sdl,
@@ -82,12 +87,25 @@ fn main() {
     // Window params
     let windowWidth = 1280;
     let windowHeight = 720;
+    let fov = DegreesToRadians(80.0);
 
-    ////// Raycasting goes here
-    //
-    //
-    //
-    //////
+    // Player info
+    let mut playerPos = Point2::New(3.0, 3.0);
+    let mut playerViewDir = Point2::New(1.0, 1.0).UnitVector();
+    let mut playerLeftMost = playerViewDir.Rotate(fov/2.0);
+
+    // Raycasting
+    for x in 0..windowWidth-1 {
+        let progress: f64 = (x as f64)/(windowWidth as f64);
+        let mut currRay = Ray::New(playerPos, playerLeftMost.Rotate(-progress*fov));
+        let mut rayCursor = RayCursor::New(currRay, playerPos);
+        while (rayCursor.hitTile.x() >= 0 && rayCursor.hitTile.x() < mapWidth as i32) && (rayCursor.hitTile.y() >= 0 && rayCursor.hitTile.y() < mapHeight as i32) {
+            rayCursor.GoToNextHit();
+            if array.get((rayCursor.hitTile.x(), rayCursor.hitTile.y())).unwrap() == 1 {
+
+            }
+        }
+    }
 
     canvas.clear();
     canvas.set_draw_color(Color::RGBA(0, 0, 0, 255));

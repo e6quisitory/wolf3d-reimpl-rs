@@ -373,7 +373,7 @@ pub mod dda {
     */
 
     #[derive(Default, Copy, Clone)]
-    struct RayCursor {
+    pub struct RayCursor {
         pub ray: Ray,
         pub hitPoint: Point2,
         pub hitTile: iPoint2,
@@ -392,7 +392,7 @@ pub mod dda {
 
         /* Constructors */
 
-        fn New(ray: Ray, hitPoint: Point2) -> Self {
+        pub fn New(ray: Ray, hitPoint: Point2) -> Self {
             RayCursor {
                 ray,
                 hitPoint,
