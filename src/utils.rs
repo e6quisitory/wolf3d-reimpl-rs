@@ -58,7 +58,7 @@ pub mod misc_math {
 
 pub mod vec2d {
 
-    use std::ops::{Add, Sub, AddAssign, SubAssign, Index, IndexMut, Neg};
+    use std::ops::{Add, Sub, AddAssign, SubAssign, Index, IndexMut, Neg, Mul};
 
     /*
     =================================================
@@ -213,6 +213,14 @@ pub mod vec2d {
         }
     }
 
+    impl Mul<f64> for Vec2 {
+        type Output = Self;
+
+        fn mul(self, scalar: f64) -> Self::Output {
+            Vec2D::New(self.e[0] * scalar, self.e[1] * scalar)
+        }
+    }
+
     /*
     =================================================
         Free functions
@@ -357,7 +365,7 @@ pub mod dda {
     */
 
     #[derive(Default, Copy, Clone, PartialEq)]
-    enum wallType_t {
+    pub enum wallType_t {
         HORIZONTAL,
         VERTICAL,
         CORNER,
@@ -432,21 +440,21 @@ pub mod dda {
             self.widthPercent = -1.0;
         }
 
-        fn GetWallType(&mut self) -> wallType_t{
+        /* Public methods */
+
+        pub fn GetWallType(&mut self) -> wallType_t{
             if self.widthPercent == -1.0 {
                 self.CalculateWallHitInfo();
             }
             return self.wallType;
         }
 
-        fn GetWidthPercent(&mut self) -> f64 {
+        pub fn GetWidthPercent(&mut self) -> f64 {
             if self.widthPercent == -1.0 {
                 self.CalculateWallHitInfo();
             }
             return self.widthPercent;
         }
-
-        /* Public methods */
 
         pub fn GoToNextHit(&mut self) {
             let nextX = self.ray.NextXIntrscPoint(self.hitPoint);

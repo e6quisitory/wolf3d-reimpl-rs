@@ -1,4 +1,5 @@
 mod utils;
+
 use std::ops::Mul;
 use std::time::Duration;
 use ndarray::Array2;
@@ -13,10 +14,10 @@ use sdl2::render::{TextureCreator, WindowCanvas};
 use sdl2::video::{Window, WindowContext};
 use std::error::Error;
 use crate::utils::conventions::PI;
-use crate::utils::dda::RayCursor;
+use crate::utils::dda::{RayCursor, wallType_t};
 use crate::utils::misc_math::DegreesToRadians;
 use crate::utils::ray::Ray;
-use crate::utils::vec2d::Point2;
+use crate::utils::vec2d::{Dot, Point2};
 
 pub struct SdlContext {
     context: sdl2::Sdl,
@@ -54,7 +55,7 @@ pub struct Game {
 
 impl Game {
     pub fn new(context: SdlContext) -> Result<Self, Box<dyn Error>> {
-        let window = context.create_window("Wolfenstein 3D Clone - Rust", 512, 448)?;
+        let window = context.create_window("Wolfenstein 3D Clone - Rust", 1280, 720)?;
 
         Ok(Self {
             context,
@@ -83,59 +84,74 @@ fn main() {
     };
     let mapWidth = array.nrows();
     let mapHeight = array.ncols();
+    println!("{}", array.get((1,1)).unwrap());
 
     // Window params
-    let windowWidth = 1280;
-    let windowHeight = 720;
-    let fov = DegreesToRadians(80.0);
+    const windowWidth: usize = 1280;
+    const windowHeight: usize = 720;
+    let fov: f64 = DegreesToRadians(80.0);
 
     // Player info
     let mut playerPos = Point2::New(3.0, 3.0);
-    let mut playerViewDir = Point2::New(1.0, 1.0).UnitVector();
-    let mut playerLeftMost = playerViewDir.Rotate(fov/2.0);
+    let mut playerViewDir = Point2::New(0.0, 1.0).UnitVector();
 
-    // Raycasting
+    //Pre-calculate angles
+    let mut castingRayAngles: [(f64, f64); windowWidth] = [(0.0, 0.0); windowWidth];
+    let projectionPlaneWidth: f64 = 2.0 * DegreesToRadians(fov / 2.0).tan();
+    let segmentLength: f64 = projectionPlaneWidth / windowWidth as f64;
     for x in 0..windowWidth-1 {
-        let progress: f64 = (x as f64)/(windowWidth as f64);
-        let mut currRay = Ray::New(playerPos, playerLeftMost.Rotate(-progress*fov));
-        let mut rayCursor = RayCursor::New(currRay, playerPos);
-        while (rayCursor.hitTile.x() >= 0 && rayCursor.hitTile.x() < mapWidth as i32) && (rayCursor.hitTile.y() >= 0 && rayCursor.hitTile.y() < mapHeight as i32) {
-            rayCursor.GoToNextHit();
-            if array.get((rayCursor.hitTile.x(), rayCursor.hitTile.y())).unwrap() == 1 {
-
-            }
-        }
+        let currAngle = (-(x as f64 * segmentLength - (projectionPlaneWidth / 2.0))).atan();
+        castingRayAngles[x] = (currAngle, currAngle.cos());
     }
-
-    canvas.clear();
-    canvas.set_draw_color(Color::RGBA(0, 0, 0, 255));
-
-    // Define the source rectangle (part of the texture to render).
-    let source_rect = Rect::new(0, 0, 512, 448);
-
-    // Define the destination rectangle (where to render it in the window).
-    let dest_rect = Rect::new(0, 0, 512, 448);
-
-    // Render a part of the texture to a part of the window.
-    canvas.copy(&texture, Some(source_rect), Some(dest_rect)).expect("Render failed");
-
-    canvas.present();
 
     let mut event_pump = game.context.context.event_pump().unwrap();
 
     'running: loop {
         for event in event_pump.poll_iter() {
             match event {
-                Event::Quit {..} |
-                Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
-                    break 'running;
-                },
+                Event::Quit {..} => { break 'running; },
+                Event::KeyDown { keycode: Some(Keycode::Left), .. } => { playerViewDir = playerViewDir.Rotate(PI/350.0) },
+                Event::KeyDown { keycode: Some(Keycode::Right), .. } => { playerViewDir = playerViewDir.Rotate(-PI/350.0) },
+                Event::KeyDown { keycode: Some(Keycode::W), .. } => { playerPos = playerPos + playerViewDir*0.1 },
+                Event::KeyDown { keycode: Some(Keycode::S), .. } => { playerPos = playerPos - playerViewDir*0.1 },
+                Event::KeyDown { keycode: Some(Keycode::D), .. } => { playerPos = playerPos - (playerViewDir.Rotate(PI/2.0))*0.025 },
+                Event::KeyDown { keycode: Some(Keycode::A), .. } => { playerPos = playerPos + (playerViewDir.Rotate(PI/2.0))*0.025 },
+
+
                 _ => {}
             }
         }
-        // The rest of the game loop goes here...
+
+        canvas.set_draw_color(Color::RGBA(0, 0, 0, 255));
+        canvas.clear();
+
+        for x in 0..windowWidth-1 {
+            let mut currRay = Ray::New(playerPos, playerViewDir.Rotate(castingRayAngles[x].0));
+            let mut rayCursor = RayCursor::New(currRay, playerPos);
+            while (rayCursor.hitTile.x() >= 0 && rayCursor.hitTile.x() < mapWidth as i32) && (rayCursor.hitTile.y() >= 0 && rayCursor.hitTile.y() < mapHeight as i32) {
+                rayCursor.GoToNextHit();
+                if *(array.get((rayCursor.hitTile.x() as usize, rayCursor.hitTile.y() as usize)).unwrap()) == 1 {
+                    let dist = rayCursor.GetDistToHitPoint();
+                    let renderHeight = (400.0/(dist*castingRayAngles[x].1)) as usize;
+                    if (rayCursor.GetWallType() == wallType_t::VERTICAL) {
+                        canvas.set_draw_color(Color::RGBA(255, 0, 0, 255));
+                    } else {
+                        canvas.set_draw_color(Color::RGBA(0, 0, 255, 255));
+                    }
+
+                    //canvas.fill_rect(Rect::new(x as i32, 0, 1, 10));
+                    let mut y = ((windowHeight as f64 / 2.0) - (renderHeight as f64 / 2.0)) as i32;
+                    canvas.fill_rect(Rect::new(x as i32, y, 1, renderHeight as u32)).unwrap();
+                    break;
+                }
+            }
+        }
+
+        canvas.present();
 
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+
+        println!("{:?}", playerPos);
     }
 }
 
