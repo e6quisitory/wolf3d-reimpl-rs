@@ -49,7 +49,7 @@ pub struct Game {
 
 impl Game {
     pub fn new(context: SdlContext) -> Result<Self, Box<dyn Error>> {
-        let window = context.create_window("Game title", 800, 600)?;
+        let window = context.create_window("Wolfenstein 3D Clone - Rust", 512, 448)?;
 
         Ok(Self {
             context,
@@ -65,17 +65,38 @@ fn main() {
     let mut canvas = game.window.into_canvas().build().unwrap();
     let texture_creator = canvas.texture_creator();
 
-    // Load the texture.
+    // Load the texture
     let texture = texture_creator.load_texture("SS.png").unwrap();
+
+    // Load map
+    let array = match parseCSV("map.csv") {
+        Ok(array) => array,
+        Err(err) => {
+            println!("Error: {}", err);
+            return;
+        },
+    };
+    let mapWidth = array.nrows();
+    let mapHeight = array.ncols();
+
+    // Window params
+    let windowWidth = 1280;
+    let windowHeight = 720;
+
+    ////// Raycasting goes here
+    //
+    //
+    //
+    //////
 
     canvas.clear();
     canvas.set_draw_color(Color::RGBA(0, 0, 0, 255));
 
     // Define the source rectangle (part of the texture to render).
-    let source_rect = Rect::new(10, 10, 100, 100);
+    let source_rect = Rect::new(0, 0, 512, 448);
 
     // Define the destination rectangle (where to render it in the window).
-    let dest_rect = Rect::new(50, 50, 200, 200);
+    let dest_rect = Rect::new(0, 0, 512, 448);
 
     // Render a part of the texture to a part of the window.
     canvas.copy(&texture, Some(source_rect), Some(dest_rect)).expect("Render failed");
@@ -98,17 +119,6 @@ fn main() {
 
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
     }
-
-    // let array = match parseCSV("map.csv") {
-    //     Ok(array) => array,
-    //     Err(err) => {
-    //         println!("Error: {}", err);
-    //         return;
-    //     },
-    // };
-    //
-    // println!("{:?}", &array);
-    // println!("{}, {}", array.nrows(), array.ncols());
 }
 
 
