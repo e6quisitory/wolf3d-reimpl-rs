@@ -10,6 +10,7 @@ use sdl2::video::Window;
 use std::error::Error;
 use sdl2::event;
 use sdl2::event::Event::*;
+use crate::moveCommand_t::{EAST, NORTH_EAST, NORTH_WEST};
 use crate::utils::conventions::PI;
 use crate::utils::dda::{RayCursor, wallType_t};
 use crate::utils::misc_math::DegreesToRadians;
@@ -77,6 +78,8 @@ enum moveCommand_t {
     SOUTH,
     EAST,
     WEST,
+    NORTH_EAST,
+    NORTH_WEST,
 
     #[default]
     NONE
@@ -94,7 +97,8 @@ enum doorCommand_t {
 struct InputsBuffer {
     lookCommand: lookCommand_t,
     moveCommand: moveCommand_t,
-    doorCommand: doorCommand_t
+    doorCommand: doorCommand_t,
+    quit: bool
 }
 
 fn main() {
@@ -144,24 +148,22 @@ fn main() {
 
     'running: loop {
 
-        let mut currXrel = 0;
-
         for event in event_pump.poll_iter() {
             match event {
                 Quit {..} | KeyDown { keycode: Some(Keycode::Escape), .. } => { break 'running; },
-                MouseMotion {xrel, .. } => {
-                    currXrel = xrel;
-
-                }
                 _ => {}
             }
         }
 
+        /************ Inputs Parser ************/
+
+        let mut currXrel = 0;
+
         let playerEast = playerViewDir.Rotate(-PI/2.0);
         let playerWest = playerViewDir.Rotate(PI/2.0);
 
-        let swivelSpeed = 0.25;
-        let moveSpeed = 0.1;
+        let swivelIncr = 0.25*PI/20.0;
+        let moveIncr = 0.1;
 
         let ks = event_pump.keyboard_state();
         let LEFT = ks.is_scancode_pressed(Scancode::Left);
@@ -172,24 +174,64 @@ fn main() {
         let D = ks.is_scancode_pressed(Scancode::D);
 
         if W && A {
-            playerPos = playerPos + playerViewDir*moveSpeed*0.7071067 + playerWest*moveSpeed*0.7071067;
+            inputsBuffer.moveCommand = moveCommand_t::NORTH_WEST;
         } else if W && D {
-            playerPos = playerPos + playerViewDir*moveSpeed*0.7071067 + playerEast*moveSpeed*0.7071067;
+            inputsBuffer.moveCommand = moveCommand_t::NORTH_EAST;
         } else if W {
-            playerPos = playerPos + playerViewDir*moveSpeed;
+            inputsBuffer.moveCommand = moveCommand_t::NORTH;
         } else if S {
-            playerPos = playerPos - playerViewDir*moveSpeed;
+            inputsBuffer.moveCommand = moveCommand_t::SOUTH;
         } else if A {
-            playerPos = playerPos + playerWest*moveSpeed;
+            inputsBuffer.moveCommand = moveCommand_t::WEST;
         } else if D {
-            playerPos = playerPos + playerEast*moveSpeed;
+            inputsBuffer.moveCommand = moveCommand_t::EAST;
+        } else {
+            inputsBuffer.moveCommand = moveCommand_t::NONE;
         }
 
         if LEFT {
-            playerViewDir = playerViewDir.Rotate((PI/20.0)*swivelSpeed);
+            inputsBuffer.lookCommand = lookCommand_t::LEFT;
         } else if RIGHT {
-            playerViewDir = playerViewDir.Rotate((-PI/20.0)*swivelSpeed);
+            inputsBuffer.lookCommand = lookCommand_t::RIGHT;
+        } else {
+            inputsBuffer.lookCommand = lookCommand_t::NONE;
         }
+
+        /************ Player Manager ************/
+
+        match inputsBuffer.moveCommand {
+            moveCommand_t::NORTH => {
+                playerPos += playerViewDir* moveIncr;
+            }
+            moveCommand_t::SOUTH => {
+                playerPos -= playerViewDir* moveIncr;
+            }
+            moveCommand_t::EAST => {
+                playerPos += playerEast* moveIncr;
+            }
+            moveCommand_t::WEST => {
+                playerPos += playerWest* moveIncr;
+            }
+            moveCommand_t::NORTH_EAST => {
+                playerPos += playerViewDir* moveIncr *0.7071067 + playerEast* moveIncr *0.7071067;
+            }
+            moveCommand_t::NORTH_WEST => {
+                playerPos += playerViewDir* moveIncr *0.7071067 + playerWest* moveIncr *0.7071067;
+            }
+            moveCommand_t::NONE => {}
+        }
+
+        match inputsBuffer.lookCommand {
+            lookCommand_t::RIGHT => {
+                playerViewDir = playerViewDir.Rotate(-swivelIncr);
+            }
+            lookCommand_t::LEFT => {
+                playerViewDir = playerViewDir.Rotate(swivelIncr);
+            }
+            lookCommand_t::NONE => {}
+        }
+
+        /************ Renderer ************/
 
         canvas.set_draw_color(Color::RGBA(0, 0, 0, 255));
         canvas.clear();
