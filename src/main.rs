@@ -4,9 +4,9 @@ mod GAME_ENGINE;
 mod INPUTS_BUFFER;
 mod INPUTS_PARSER;
 mod PLAYER;
+mod MAP;
 
 use UTILS::{
-    CSV::*,
     DDA::{RayCursor, wallType_t},
     MISC_MATH::DegreesToRadians,
     RAY::Ray,
@@ -22,18 +22,6 @@ use crate::INPUTS_PARSER::ParseInputs;
 
 fn main() {
     let mut gameEngine = GameEngine::New(1280, 720);
-
-    // Load map
-    let array = match parseCSV("map.csv") {
-        Ok(array) => array,
-        Err(err) => {
-            println!("Error: {}", err);
-            return;
-        },
-    };
-    let mapWidth = array.nrows();
-    let mapHeight = array.ncols();
-    println!("{}", array.get((1,1)).unwrap());
 
     // Window params
     let fov: f64 = 90.0;
@@ -71,9 +59,9 @@ fn main() {
         for x in 0..gameEngine.windowParams.windowWidth -1 {
             let currRay = Ray::New(gameEngine.player.position, gameEngine.player.viewDir.Rotate(castingRayAngles[x].0));
             let mut rayCursor = RayCursor::New(currRay, gameEngine.player.position);
-            while (rayCursor.hitTile.x() >= 0 && rayCursor.hitTile.x() < mapWidth as i32) && (rayCursor.hitTile.y() >= 0 && rayCursor.hitTile.y() < mapHeight as i32) {
+            while gameEngine.map.WithinMap(rayCursor.hitTile) {
                 rayCursor.GoToNextHit();
-                if *(array.get((rayCursor.hitTile.x() as usize, rayCursor.hitTile.y() as usize)).unwrap()) == 1 {
+                if gameEngine.map.GetTile(rayCursor.hitTile) == 1 {
                     let dist = rayCursor.GetDistToHitPoint();
                     let renderHeight = (400.0/(dist*castingRayAngles[x].1)) as usize;
                     if rayCursor.GetWallType() == wallType_t::VERTICAL {

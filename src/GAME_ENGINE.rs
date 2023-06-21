@@ -2,6 +2,7 @@
 /*********************************** GAME_ENGINE ***********************************/
 
 use sdl2::render::WindowCanvas;
+use crate::MAP::Map;
 use crate::MULTIMEDIA::WindowParams;
 use crate::PLAYER::Player;
 use super::MULTIMEDIA::SDLContexts;
@@ -12,7 +13,8 @@ pub struct GameEngine {
     pub sdlCanvas: WindowCanvas,
     pub windowParams: WindowParams,
     pub inputsBuffer: InputsBuffer,
-    pub player: Player
+    pub player: Player,
+    pub map: Map
 }
 
 impl GameEngine {
@@ -28,13 +30,15 @@ impl GameEngine {
         let windowParams = WindowParams { windowWidth, windowHeight };
         let inputsBuffer = InputsBuffer::default();
         let player = Player::New();
+        let map = Map::LoadFromCSV("map.csv");
 
         Self {
             sdlContexts,
             sdlCanvas,
             windowParams,
             inputsBuffer,
-            player
+            player,
+            map
         }
     }
 }

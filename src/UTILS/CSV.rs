@@ -6,7 +6,7 @@ use std::fs::File;
 use csv::ReaderBuilder;
 use ndarray::Array2;
 
-pub fn parseCSV(path: &str) -> Result<Array2<i32>, Box<dyn Error>> {
+pub fn ParseCSV(path: &str) -> Result<Array2<i32>, Box<dyn Error>> {
     // Open the file
     let file = File::open(path)?;
 
