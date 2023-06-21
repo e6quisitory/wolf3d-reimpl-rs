@@ -1,16 +1,7 @@
 mod UTILS;
+mod MULTIMEDIA;
+mod GAME_ENGINE;
 
-use std::error::Error;
-use sdl2::{
-    rect::Rect,
-    pixels::Color,
-    keyboard::{Keycode, Scancode},
-    video::{Window, WindowContext},
-    image::{self, LoadTexture},
-    event::Event::*,
-    render::{Texture, TextureCreator},
-    surface::Surface,
-};
 use UTILS::{
     CSV::*,
     CONVENTIONS::PI,
@@ -19,52 +10,15 @@ use UTILS::{
     RAY::Ray,
     VEC2D::Point2,
 };
-
-pub struct SdlContext {
-    context: sdl2::Sdl,
-    video_subsystem: sdl2::VideoSubsystem,
-    _image_context: image::Sdl2ImageContext,
-}
-
-impl SdlContext {
-    pub fn new() -> Result<Self, Box<dyn Error>> {
-        let context = sdl2::init()?;
-        context.mouse().set_relative_mouse_mode(true);
-        let video_subsystem = context.video()?;
-        let _image_context = sdl2::image::init(sdl2::image::InitFlag::PNG)?;
-
-        Ok(Self {
-            context,
-            video_subsystem,
-            _image_context,
-        })
-    }
-
-    pub fn create_window(&self, title: &str, width: u32, height: u32) -> Result<Window, Box<dyn Error>> {
-        let window = self.video_subsystem
-            .window(title, width, height)
-            .position_centered()
-            .build()?;
-
-        Ok(window)
-    }
-}
-
-pub struct Game {
-    context: SdlContext,
-    window: Window,
-}
-
-impl Game {
-    pub fn new(context: SdlContext) -> Result<Self, Box<dyn Error>> {
-        let window = context.create_window("Wolfenstein 3D Clone - Rust", 1280, 720)?;
-
-        Ok(Self {
-            context,
-            window,
-        })
-    }
-}
+use sdl2::{
+    rect::Rect,
+    pixels::Color,
+    keyboard::{Keycode, Scancode},
+    image::LoadTexture,
+    event::Event::*,
+};
+use crate::GAME_ENGINE::GameEngine;
+use crate::MULTIMEDIA::SDLContexts;
 
 #[derive(Default)]
 enum lookCommand_t {
@@ -105,10 +59,10 @@ struct InputsBuffer {
 }
 
 fn main() {
-    let context = SdlContext::new().unwrap();
-    let game = Game::new(context).unwrap();
+    let context = SDLContexts::New();
+    let game = GameEngine::New(context);
 
-    let mut canvas = game.window.into_canvas().accelerated().present_vsync().build().unwrap();
+    let mut canvas = game.sdlWindow.into_canvas().accelerated().present_vsync().build().unwrap();
     let texture_creator = canvas.texture_creator();
 
     // Load the texture
@@ -147,7 +101,7 @@ fn main() {
         castingRayAngles[x] = (currAngle, currAngle.cos());
     }
 
-    let mut event_pump = game.context.context.event_pump().unwrap();
+    let mut event_pump = game.sdlContexts.sdlContext.event_pump().unwrap();
 
     'running: loop {
 
