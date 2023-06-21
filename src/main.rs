@@ -15,22 +15,13 @@ use sdl2::{
     rect::Rect,
     pixels::Color,
     keyboard::Keycode,
-    image::LoadTexture,
     event::Event::*,
 };
 use crate::GAME_ENGINE::GameEngine;
 use crate::INPUTS_PARSER::ParseInputs;
-use crate::MULTIMEDIA::SDLContexts;
 
 fn main() {
-    let sdlContexts = SDLContexts::New();
-    let mut gameEngine = GameEngine::New(sdlContexts);
-
-    let mut canvas = gameEngine.sdlWindow.into_canvas().accelerated().present_vsync().build().unwrap();
-    let texture_creator = canvas.texture_creator();
-
-    // Load the texture
-    let texture = texture_creator.load_texture("SS.png").unwrap();
+    let mut gameEngine = GameEngine::New(1280, 720);
 
     // Load map
     let array = match parseCSV("map.csv") {
@@ -45,15 +36,13 @@ fn main() {
     println!("{}", array.get((1,1)).unwrap());
 
     // Window params
-    const WINDOW_WIDTH: usize = 1280;
-    const WINDOW_HEIGHT: usize = 720;
     let fov: f64 = 90.0;
 
     //Pre-calculate angles
-    let mut castingRayAngles: [(f64, f64); WINDOW_WIDTH] = [(0.0, 0.0); WINDOW_WIDTH];
+    let mut castingRayAngles: Vec<(f64, f64)> = vec![(0.0, 0.0); gameEngine.windowParams.windowWidth];
     let projectionPlaneWidth: f64 = 2.0 * DegreesToRadians(fov / 2.0).tan();
-    let segmentLength: f64 = projectionPlaneWidth / WINDOW_WIDTH as f64;
-    for x in 0..WINDOW_WIDTH -1 {
+    let segmentLength: f64 = projectionPlaneWidth / gameEngine.windowParams.windowWidth as f64;
+    for x in 0..gameEngine.windowParams.windowWidth -1 {
         let currAngle = (-(x as f64 * segmentLength - (projectionPlaneWidth / 2.0))).atan();
         castingRayAngles[x] = (currAngle, currAngle.cos());
     }
@@ -76,10 +65,10 @@ fn main() {
 
         /************ Renderer ************/
 
-        canvas.set_draw_color(Color::RGBA(0, 0, 0, 255));
-        canvas.clear();
+        gameEngine.sdlCanvas.set_draw_color(Color::RGBA(0, 0, 0, 255));
+        gameEngine.sdlCanvas.clear();
 
-        for x in 0..WINDOW_WIDTH -1 {
+        for x in 0..gameEngine.windowParams.windowWidth -1 {
             let currRay = Ray::New(gameEngine.player.position, gameEngine.player.viewDir.Rotate(castingRayAngles[x].0));
             let mut rayCursor = RayCursor::New(currRay, gameEngine.player.position);
             while (rayCursor.hitTile.x() >= 0 && rayCursor.hitTile.x() < mapWidth as i32) && (rayCursor.hitTile.y() >= 0 && rayCursor.hitTile.y() < mapHeight as i32) {
@@ -88,20 +77,20 @@ fn main() {
                     let dist = rayCursor.GetDistToHitPoint();
                     let renderHeight = (400.0/(dist*castingRayAngles[x].1)) as usize;
                     if rayCursor.GetWallType() == wallType_t::VERTICAL {
-                        canvas.set_draw_color(Color::RGBA(199, 199, 199, 255));
+                        gameEngine.sdlCanvas.set_draw_color(Color::RGBA(199, 199, 199, 255));
                     } else {
-                        canvas.set_draw_color(Color::RGBA(81, 81, 81, 255));
+                        gameEngine.sdlCanvas.set_draw_color(Color::RGBA(81, 81, 81, 255));
                     }
 
                     //canvas.fill_rect(Rect::new(x as i32, 0, 1, 10));
-                    let y = ((WINDOW_HEIGHT as f64 / 2.0) - (renderHeight as f64 / 2.0)) as i32;
-                    canvas.fill_rect(Rect::new(x as i32, y, 1, renderHeight as u32)).unwrap();
+                    let y = ((gameEngine.windowParams.windowHeight as f64 / 2.0) - (renderHeight as f64 / 2.0)) as i32;
+                    gameEngine.sdlCanvas.fill_rect(Rect::new(x as i32, y, 1, renderHeight as u32)).unwrap();
                     break;
                 }
             }
         }
 
-        canvas.present();
+        gameEngine.sdlCanvas.present();
     }
 }
 

@@ -36,3 +36,8 @@ impl SDLContexts {
         return _sdlWindow;
     }
 }
+
+pub struct WindowParams {
+    pub windowWidth: usize,
+    pub windowHeight: usize,
+}
