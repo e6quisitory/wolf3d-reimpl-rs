@@ -3,24 +3,22 @@ mod MULTIMEDIA;
 mod GAME_ENGINE;
 mod INPUTS_BUFFER;
 mod INPUTS_PARSER;
+mod PLAYER;
 
 use UTILS::{
     CSV::*,
-    CONVENTIONS::PI,
     DDA::{RayCursor, wallType_t},
     MISC_MATH::DegreesToRadians,
     RAY::Ray,
-    VEC2D::Point2,
 };
 use sdl2::{
     rect::Rect,
     pixels::Color,
-    keyboard::{Keycode, Scancode},
+    keyboard::Keycode,
     image::LoadTexture,
     event::Event::*,
 };
 use crate::GAME_ENGINE::GameEngine;
-use crate::INPUTS_BUFFER::{lookCommand_t, moveCommand_t};
 use crate::INPUTS_PARSER::ParseInputs;
 use crate::MULTIMEDIA::SDLContexts;
 
@@ -51,10 +49,6 @@ fn main() {
     const WINDOW_HEIGHT: usize = 720;
     let fov: f64 = 90.0;
 
-    // Player info
-    let mut playerPos = Point2::New(4.127, 5.033);
-    let mut playerViewDir = Point2::New(-0.019038625821465295, 0.7068504302374231).UnitVector();
-
     //Pre-calculate angles
     let mut castingRayAngles: [(f64, f64); WINDOW_WIDTH] = [(0.0, 0.0); WINDOW_WIDTH];
     let projectionPlaneWidth: f64 = 2.0 * DegreesToRadians(fov / 2.0).tan();
@@ -75,49 +69,10 @@ fn main() {
             }
         }
 
-        ParseInputs(&event_pump, &mut gameEngine.inputsBuffer);
+        ParseInputs(event_pump.keyboard_state(), &mut gameEngine.inputsBuffer);
 
+        gameEngine.player.Update(&gameEngine.inputsBuffer);
 
-
-        /************ Player Manager ************/
-
-        let playerEast = playerViewDir.Rotate(-PI/2.0);
-        let playerWest = playerViewDir.Rotate(PI/2.0);
-
-        let swivelIncr = 0.25*PI/20.0;
-        let moveIncr = 0.1;
-
-        match gameEngine.inputsBuffer.moveCommand {
-            moveCommand_t::NORTH => {
-                playerPos += playerViewDir* moveIncr;
-            }
-            moveCommand_t::SOUTH => {
-                playerPos -= playerViewDir* moveIncr;
-            }
-            moveCommand_t::EAST => {
-                playerPos += playerEast* moveIncr;
-            }
-            moveCommand_t::WEST => {
-                playerPos += playerWest* moveIncr;
-            }
-            moveCommand_t::NORTH_EAST => {
-                playerPos += playerViewDir* moveIncr *0.7071067 + playerEast* moveIncr *0.7071067;
-            }
-            moveCommand_t::NORTH_WEST => {
-                playerPos += playerViewDir* moveIncr *0.7071067 + playerWest* moveIncr *0.7071067;
-            }
-            moveCommand_t::NONE => {}
-        }
-
-        match gameEngine.inputsBuffer.lookCommand {
-            lookCommand_t::RIGHT => {
-                playerViewDir = playerViewDir.Rotate(-swivelIncr);
-            }
-            lookCommand_t::LEFT => {
-                playerViewDir = playerViewDir.Rotate(swivelIncr);
-            }
-            lookCommand_t::NONE => {}
-        }
 
         /************ Renderer ************/
 
@@ -125,8 +80,8 @@ fn main() {
         canvas.clear();
 
         for x in 0..WINDOW_WIDTH -1 {
-            let currRay = Ray::New(playerPos, playerViewDir.Rotate(castingRayAngles[x].0));
-            let mut rayCursor = RayCursor::New(currRay, playerPos);
+            let currRay = Ray::New(gameEngine.player.position, gameEngine.player.viewDir.Rotate(castingRayAngles[x].0));
+            let mut rayCursor = RayCursor::New(currRay, gameEngine.player.position);
             while (rayCursor.hitTile.x() >= 0 && rayCursor.hitTile.x() < mapWidth as i32) && (rayCursor.hitTile.y() >= 0 && rayCursor.hitTile.y() < mapHeight as i32) {
                 rayCursor.GoToNextHit();
                 if *(array.get((rayCursor.hitTile.x() as usize, rayCursor.hitTile.y() as usize)).unwrap()) == 1 {

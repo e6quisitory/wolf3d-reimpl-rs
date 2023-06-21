@@ -1,7 +1,7 @@
 
 /*********************************** INPUTS_BUFFER ***********************************/
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub enum lookCommand_t {
     RIGHT,
     LEFT,
@@ -10,7 +10,7 @@ pub enum lookCommand_t {
     NONE
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub enum moveCommand_t {
     NORTH,
     SOUTH,
@@ -23,7 +23,7 @@ pub enum moveCommand_t {
     NONE
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub enum doorCommand_t {
     OPEN,
 
@@ -31,7 +31,7 @@ pub enum doorCommand_t {
     NONE
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct InputsBuffer {
     pub lookCommand: lookCommand_t,
     pub moveCommand: moveCommand_t,
