@@ -8,8 +8,14 @@ use sdl2::event::Event;
 use sdl2::keyboard::{Keycode, Scancode};
 use sdl2::video::Window;
 use std::error::Error;
-use sdl2::event;
+use sdl2::{event, image};
 use sdl2::event::Event::*;
+use sdl2::pixels::PixelFormatEnum;
+use sdl2::render::{Texture, TextureCreator};
+use sdl2::surface::Surface;
+use sdl2::video::WindowContext;
+use std::path::Path;
+use sdl2::image::LoadTexture;
 use crate::moveCommand_t::{EAST, NORTH_EAST, NORTH_WEST};
 use crate::utils::conventions::PI;
 use crate::utils::dda::{RayCursor, wallType_t};
@@ -20,7 +26,7 @@ use crate::utils::vec2d::Point2;
 pub struct SdlContext {
     context: sdl2::Sdl,
     video_subsystem: sdl2::VideoSubsystem,
-    _image_context: sdl2::image::Sdl2ImageContext,
+    _image_context: image::Sdl2ImageContext,
 }
 
 impl SdlContext {
@@ -101,15 +107,33 @@ struct InputsBuffer {
     quit: bool
 }
 
+// fn ExtractSubtexture<'a>(texture: &'a Texture<'a>, textureCreator: &'a TextureCreator<WindowContext>, texturePitch: u32, rectX: u32, rectY: u32) -> Texture<'a> {
+//     let textureInfo = texture.query();
+//     let mut tempSurface = Surface::new(texturePitch, texturePitch, textureInfo.format).unwrap();
+//
+//     let mut tempCanvas = tempSurface.into_canvas().unwrap();
+//     let subtextureRect = Rect::new(rectX as i32, rectY as i32, texturePitch, texturePitch);
+//     tempCanvas.copy(texture, subtextureRect, Rect::new(0, 0, texturePitch, texturePitch));
+//     tempCanvas.present();
+//
+//     let mut subtextureSurface = Surface::new(texturePitch, texturePitch, textureInfo.format).unwrap();
+//
+//     return textureCreator.create_texture_from_surface(&tempSurface).unwrap();
+// }
+//
+// struct Assets {
+//
+// }
+
 fn main() {
     let context = SdlContext::new().unwrap();
     let game = Game::new(context).unwrap();
 
     let mut canvas = game.window.into_canvas().accelerated().present_vsync().build().unwrap();
-    //let texture_creator = canvas.texture_creator();
+    let texture_creator = canvas.texture_creator();
 
     // Load the texture
-    //let texture = texture_creator.load_texture("SS.png").unwrap();
+    let texture = texture_creator.load_texture("SS.png").unwrap();
 
     // Inputs
     let mut inputsBuffer: InputsBuffer = InputsBuffer::default();

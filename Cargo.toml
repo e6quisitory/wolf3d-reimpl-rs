@@ -8,4 +8,8 @@ edition = "2021"
 [dependencies]
 csv = "1.2.2"
 ndarray = "0.15.6"
-sdl2 = { version = "0.35.2", features = ["image"] }
+
+[dependencies.sdl2]
+version = "0.35.2"
+default-features = false
+features = ["image"]
