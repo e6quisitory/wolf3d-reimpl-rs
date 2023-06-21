@@ -1,6 +1,8 @@
 mod UTILS;
 mod MULTIMEDIA;
 mod GAME_ENGINE;
+mod INPUTS_BUFFER;
+mod INPUTS_PARSER;
 
 use UTILS::{
     CSV::*,
@@ -18,58 +20,19 @@ use sdl2::{
     event::Event::*,
 };
 use crate::GAME_ENGINE::GameEngine;
+use crate::INPUTS_BUFFER::{lookCommand_t, moveCommand_t};
+use crate::INPUTS_PARSER::ParseInputs;
 use crate::MULTIMEDIA::SDLContexts;
 
-#[derive(Default)]
-enum lookCommand_t {
-    RIGHT,
-    LEFT,
-
-    #[default]
-    NONE
-}
-
-#[derive(Default)]
-enum moveCommand_t {
-    NORTH,
-    SOUTH,
-    EAST,
-    WEST,
-    NORTH_EAST,
-    NORTH_WEST,
-
-    #[default]
-    NONE
-}
-
-#[derive(Default)]
-enum doorCommand_t {
-    OPEN,
-
-    #[default]
-    NONE
-}
-
-#[derive(Default)]
-struct InputsBuffer {
-    lookCommand: lookCommand_t,
-    moveCommand: moveCommand_t,
-    doorCommand: doorCommand_t,
-    quit: bool
-}
-
 fn main() {
-    let context = SDLContexts::New();
-    let game = GameEngine::New(context);
+    let sdlContexts = SDLContexts::New();
+    let mut gameEngine = GameEngine::New(sdlContexts);
 
-    let mut canvas = game.sdlWindow.into_canvas().accelerated().present_vsync().build().unwrap();
+    let mut canvas = gameEngine.sdlWindow.into_canvas().accelerated().present_vsync().build().unwrap();
     let texture_creator = canvas.texture_creator();
 
     // Load the texture
     let texture = texture_creator.load_texture("SS.png").unwrap();
-
-    // Inputs
-    let mut inputsBuffer: InputsBuffer = InputsBuffer::default();
 
     // Load map
     let array = match parseCSV("map.csv") {
@@ -101,7 +64,7 @@ fn main() {
         castingRayAngles[x] = (currAngle, currAngle.cos());
     }
 
-    let mut event_pump = game.sdlContexts.sdlContext.event_pump().unwrap();
+    let mut event_pump = gameEngine.sdlContexts.sdlContext.event_pump().unwrap();
 
     'running: loop {
 
@@ -112,9 +75,11 @@ fn main() {
             }
         }
 
-        /************ Inputs Parser ************/
+        ParseInputs(&event_pump, &mut gameEngine.inputsBuffer);
 
-        let mut currXrel = 0;
+
+
+        /************ Player Manager ************/
 
         let playerEast = playerViewDir.Rotate(-PI/2.0);
         let playerWest = playerViewDir.Rotate(PI/2.0);
@@ -122,41 +87,7 @@ fn main() {
         let swivelIncr = 0.25*PI/20.0;
         let moveIncr = 0.1;
 
-        let ks = event_pump.keyboard_state();
-        let LEFT = ks.is_scancode_pressed(Scancode::Left);
-        let RIGHT = ks.is_scancode_pressed(Scancode::Right);
-        let W = ks.is_scancode_pressed(Scancode::W);
-        let S = ks.is_scancode_pressed(Scancode::S);
-        let A = ks.is_scancode_pressed(Scancode::A);
-        let D = ks.is_scancode_pressed(Scancode::D);
-
-        if W && A {
-            inputsBuffer.moveCommand = moveCommand_t::NORTH_WEST;
-        } else if W && D {
-            inputsBuffer.moveCommand = moveCommand_t::NORTH_EAST;
-        } else if W {
-            inputsBuffer.moveCommand = moveCommand_t::NORTH;
-        } else if S {
-            inputsBuffer.moveCommand = moveCommand_t::SOUTH;
-        } else if A {
-            inputsBuffer.moveCommand = moveCommand_t::WEST;
-        } else if D {
-            inputsBuffer.moveCommand = moveCommand_t::EAST;
-        } else {
-            inputsBuffer.moveCommand = moveCommand_t::NONE;
-        }
-
-        if LEFT {
-            inputsBuffer.lookCommand = lookCommand_t::LEFT;
-        } else if RIGHT {
-            inputsBuffer.lookCommand = lookCommand_t::RIGHT;
-        } else {
-            inputsBuffer.lookCommand = lookCommand_t::NONE;
-        }
-
-        /************ Player Manager ************/
-
-        match inputsBuffer.moveCommand {
+        match gameEngine.inputsBuffer.moveCommand {
             moveCommand_t::NORTH => {
                 playerPos += playerViewDir* moveIncr;
             }
@@ -178,7 +109,7 @@ fn main() {
             moveCommand_t::NONE => {}
         }
 
-        match inputsBuffer.lookCommand {
+        match gameEngine.inputsBuffer.lookCommand {
             lookCommand_t::RIGHT => {
                 playerViewDir = playerViewDir.Rotate(-swivelIncr);
             }
