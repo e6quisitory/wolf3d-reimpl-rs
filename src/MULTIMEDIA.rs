@@ -5,6 +5,7 @@ use sdl2::{
     image,
     video::Window
 };
+use crate::UTILS::MISC_MATH::DegreesToRadians;
 
 pub struct SDLContexts {
     pub sdlContext: sdl2::Sdl,
@@ -40,4 +41,27 @@ impl SDLContexts {
 pub struct WindowParams {
     pub windowWidth: usize,
     pub windowHeight: usize,
+}
+
+pub struct RenderParams {
+    pub fov: f64,
+    pub castingRayAngles: Vec<(f64, f64)>
+}
+
+impl RenderParams {
+    pub fn New(fov: f64, windowWidth: usize) -> Self {
+        // Calculate casting ray angles
+        let mut castingRayAngles: Vec<(f64, f64)> = vec![(0.0, 0.0); windowWidth];
+        let projectionPlaneWidth: f64 = 2.0 * DegreesToRadians(fov / 2.0).tan();
+        let segmentLength: f64 = projectionPlaneWidth / windowWidth as f64;
+        for x in 0..windowWidth-1 {
+            let currAngle = (-(x as f64 * segmentLength - (projectionPlaneWidth / 2.0))).atan();
+            castingRayAngles[x] = (currAngle, currAngle.cos());
+        }
+
+        RenderParams {
+            fov,
+            castingRayAngles
+        }
+    }
 }
