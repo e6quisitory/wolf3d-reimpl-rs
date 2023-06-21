@@ -1,5 +1,6 @@
 mod utils;
 
+use std::collections::HashMap;
 use utils::mapCSV::*;
 use sdl2::rect::Rect;
 use sdl2::pixels::Color;
@@ -7,6 +8,8 @@ use sdl2::event::Event;
 use sdl2::keyboard::{Keycode, Scancode};
 use sdl2::video::Window;
 use std::error::Error;
+use sdl2::event;
+use sdl2::event::Event::*;
 use crate::utils::conventions::PI;
 use crate::utils::dda::{RayCursor, wallType_t};
 use crate::utils::misc_math::DegreesToRadians;
@@ -22,6 +25,7 @@ pub struct SdlContext {
 impl SdlContext {
     pub fn new() -> Result<Self, Box<dyn Error>> {
         let context = sdl2::init()?;
+        context.mouse().set_relative_mouse_mode(true);
         let video_subsystem = context.video()?;
         let _image_context = sdl2::image::init(sdl2::image::InitFlag::PNG)?;
 
@@ -58,6 +62,41 @@ impl Game {
     }
 }
 
+#[derive(Default)]
+enum lookCommand_t {
+    RIGHT,
+    LEFT,
+
+    #[default]
+    NONE
+}
+
+#[derive(Default)]
+enum moveCommand_t {
+    NORTH,
+    SOUTH,
+    EAST,
+    WEST,
+
+    #[default]
+    NONE
+}
+
+#[derive(Default)]
+enum doorCommand_t {
+    OPEN,
+
+    #[default]
+    NONE
+}
+
+#[derive(Default)]
+struct InputsBuffer {
+    lookCommand: lookCommand_t,
+    moveCommand: moveCommand_t,
+    doorCommand: doorCommand_t
+}
+
 fn main() {
     let context = SdlContext::new().unwrap();
     let game = Game::new(context).unwrap();
@@ -67,6 +106,9 @@ fn main() {
 
     // Load the texture
     //let texture = texture_creator.load_texture("SS.png").unwrap();
+
+    // Inputs
+    let mut inputsBuffer: InputsBuffer = InputsBuffer::default();
 
     // Load map
     let array = match parseCSV("map.csv") {
@@ -101,12 +143,16 @@ fn main() {
     let mut event_pump = game.context.context.event_pump().unwrap();
 
     'running: loop {
+
+        let mut currXrel = 0;
+
         for event in event_pump.poll_iter() {
             match event {
-                Event::Quit {..} |
-                Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
-                    break 'running;
-                },
+                Quit {..} | KeyDown { keycode: Some(Keycode::Escape), .. } => { break 'running; },
+                MouseMotion {xrel, .. } => {
+                    currXrel = xrel;
+
+                }
                 _ => {}
             }
         }
