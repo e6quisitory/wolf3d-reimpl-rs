@@ -5,6 +5,11 @@ use sdl2::{
     image,
     video::Window
 };
+use sdl2::pixels::PixelFormatEnum;
+use sdl2::rect::Rect;
+use sdl2::render::{Texture, TextureCreator};
+use sdl2::surface::Surface;
+use sdl2::video::WindowContext;
 use crate::UTILS::MISC_MATH::DegreesToRadians;
 
 pub struct SDLContexts {
@@ -62,6 +67,23 @@ impl RenderParams {
         RenderParams {
             fov,
             castingRayAngles
+        }
+    }
+}
+
+pub struct Assets<'a> {
+    pub tempTexture: Texture<'a>
+}
+
+impl<'a> Assets<'a> {
+    pub fn GetFirstTexture(sdlTextureCreator: &'a TextureCreator<WindowContext>) -> Self {
+        let textureSheet = Surface::load_bmp("wall_textures.bmp").unwrap();
+        let mut extractedTextureSurface = Surface::new(64, 64, PixelFormatEnum::ARGB8888).unwrap();
+        textureSheet.blit(Rect::new(0, 0, 64, 64), &mut extractedTextureSurface, Rect::new(0, 0, 64, 64));
+        let tempTexture = sdlTextureCreator.create_texture_from_surface(&extractedTextureSurface).unwrap();
+
+        Self {
+            tempTexture
         }
     }
 }
