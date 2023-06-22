@@ -1,6 +1,5 @@
 mod UTILS;
 mod MULTIMEDIA;
-//mod GAME_ENGINE;
 mod INPUTS_BUFFER;
 mod PLAYER;
 mod MAP;
@@ -38,7 +37,7 @@ fn main() {
 
     loop {
         inputsBuffer.Update(&mut sdlEventPump);
-        player.Update(&inputsBuffer);
+        player.Update(&inputsBuffer, &map);
 
         if inputsBuffer.quit {
             break;
@@ -61,7 +60,10 @@ fn main() {
                 let textureID = map.GetTile(rayCursor.hitTile);
                 if textureID != 0 {
                     let dist = rayCursor.GetDistToHitPoint();
-                    let renderHeight = 400.0 / (dist * renderParams.castingRayAngles[x].1);
+
+                    let propr_const = 1.15 * (windowWidth as f64) / ((16.0 / 9.0) * (renderParams.fov / 72.0));
+
+                    let renderHeight = propr_const / (dist * renderParams.castingRayAngles[x].1);
                     if rayCursor.GetWallType() == wallType_t::VERTICAL {
                         sdlCanvas.set_draw_color(Color::RGBA(199, 199, 199, 255));
                     } else {
