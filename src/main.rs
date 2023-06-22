@@ -47,10 +47,10 @@ fn main() {
         sdlCanvas.set_draw_color(Color::RGBA(0, 0, 0, 255));
         sdlCanvas.clear();
 
-        sdlCanvas.set_draw_color(Color::RGBA(96, 96, 96, 255));
+        sdlCanvas.set_draw_color(Color::RGBA(50, 50, 50, 255));
         sdlCanvas.fill_rect(Rect::new(0, 0, windowWidth as u32, (windowHeight/2) as u32)).unwrap();
 
-        sdlCanvas.set_draw_color(Color::RGBA(50, 50, 50, 255));
+        sdlCanvas.set_draw_color(Color::RGBA(96, 96, 96, 255));
         sdlCanvas.fill_rect(Rect::new(0, (windowHeight / 2) as i32, windowWidth as u32, (windowHeight/2) as u32)).unwrap();
 
         for x in 0..windowParams.windowWidth -1 {
@@ -58,7 +58,8 @@ fn main() {
             let mut rayCursor = RayCursor::New(currRay, player.position);
             while map.WithinMap(rayCursor.hitTile) {
                 rayCursor.GoToNextHit();
-                if map.GetTile(rayCursor.hitTile) == 1 {
+                let textureID = map.GetTile(rayCursor.hitTile);
+                if textureID != 0 {
                     let dist = rayCursor.GetDistToHitPoint();
                     let renderHeight = 400.0 / (dist * renderParams.castingRayAngles[x].1);
                     if rayCursor.GetWallType() == wallType_t::VERTICAL {
@@ -70,7 +71,7 @@ fn main() {
                     //canvas.fill_rect(Rect::new(x as i32, 0, 1, 10));
                     let y = ((windowParams.windowHeight as f64 / 2.0) - (renderHeight / 2.0)) as i32;
                     //sdlCanvas.fill_rect(Rect::new(x as i32, y, 1, renderHeight as u32)).unwrap();
-                    let _ = sdlCanvas.copy(&assets.wallTextures[14], Rect::new((rayCursor.GetWidthPercent() as f64 * 64.0) as i32, 0, 1, 64),Rect::new(x as i32, y, 1, renderHeight as u32));
+                    let _ = sdlCanvas.copy(&assets.wallTextures[textureID as usize], Rect::new((rayCursor.GetWidthPercent() as f64 * 64.0) as i32, 0, 1, 64),Rect::new(x as i32, y, 1, renderHeight as u32));
                     break;
                 }
             }
