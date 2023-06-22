@@ -15,8 +15,8 @@ use crate::UTILS::RAY::Ray;
 
 fn main() {
 
-    let windowWidth = 1280;
-    let windowHeight = 720;
+    let windowWidth = 960;
+    let windowHeight = 540;
 
     let sdlContexts = SDLContexts::New();
     let mut sdlCanvas = sdlContexts
