@@ -72,18 +72,31 @@ impl RenderParams {
 }
 
 pub struct Assets<'a> {
-    pub tempTexture: Texture<'a>
+    pub wallTextures: Vec<Texture<'a>>
 }
 
 impl<'a> Assets<'a> {
-    pub fn GetFirstTexture(sdlTextureCreator: &'a TextureCreator<WindowContext>) -> Self {
+    pub fn LoadWallTextures(sdlTextureCreator: &'a TextureCreator<WindowContext>) -> Self {
+        let mut wallTextures: Vec<Texture> = Vec::new();
         let textureSheet = Surface::load_bmp("wall_textures.bmp").unwrap();
-        let mut extractedTextureSurface = Surface::new(64, 64, PixelFormatEnum::ARGB8888).unwrap();
-        textureSheet.blit(Rect::new(0, 0, 64, 64), &mut extractedTextureSurface, Rect::new(0, 0, 64, 64));
-        let tempTexture = sdlTextureCreator.create_texture_from_surface(&extractedTextureSurface).unwrap();
+
+        for textureID in 1..110 {
+            wallTextures.push(Self::ExtractTextureFromSurface(sdlTextureCreator, &textureSheet, textureID, 64));
+        }
 
         Self {
-            tempTexture
+            wallTextures
         }
+    }
+
+    fn ExtractTextureFromSurface(sdlTextureCreator: &'a TextureCreator<WindowContext>, textureSheet: &Surface, textureID: i32, texturePitch: i32) -> Texture<'a> {
+        let textureSheetPitch = 6;
+        let textureX = ((textureID - 1) % textureSheetPitch ) * texturePitch;
+        let textureY = ((textureID - 1) / textureSheetPitch ) * texturePitch;
+
+        let mut extractedTextureSurface = Surface::new(texturePitch as u32, texturePitch as u32, PixelFormatEnum::ARGB8888).unwrap();
+        let _ = textureSheet.blit(Rect::new(textureX, textureY, texturePitch as u32, texturePitch as u32), &mut extractedTextureSurface, Rect::new(0, 0, texturePitch as u32, texturePitch as u32));
+
+        return sdlTextureCreator.create_texture_from_surface(&extractedTextureSurface).unwrap();
     }
 }
