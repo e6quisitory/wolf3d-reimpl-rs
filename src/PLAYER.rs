@@ -39,12 +39,12 @@ impl Player {
         let mut proposedLoc: Point2 = self.position;
 
         match inputsBuffer.moveCommand {
-            moveCommand_t::NORTH => { proposedLoc = self.position + self.viewDir* moveIncr; }
-            moveCommand_t::SOUTH => { proposedLoc = self.position - self.viewDir* moveIncr; }
-            moveCommand_t::EAST => { proposedLoc = self.position + self.east* moveIncr; }
-            moveCommand_t::WEST => { proposedLoc = self.position + self.west* moveIncr; }
-            moveCommand_t::NORTH_EAST => { proposedLoc = self.position + self.viewDir* moveIncr *0.7071067 + self.east* moveIncr *0.7071067; }
-            moveCommand_t::NORTH_WEST => { proposedLoc = self.position + self.viewDir* moveIncr *0.7071067 + self.west* moveIncr *0.7071067; }
+            moveCommand_t::NORTH => { proposedLoc = self.position + self.viewDir*moveIncr; }
+            moveCommand_t::SOUTH => { proposedLoc = self.position - self.viewDir*moveIncr; }
+            moveCommand_t::EAST => { proposedLoc = self.position + self.east*moveIncr; }
+            moveCommand_t::WEST => { proposedLoc = self.position + self.west*moveIncr; }
+            moveCommand_t::NORTH_EAST => { proposedLoc = self.position + self.viewDir*moveIncr*0.7071067 + self.east*moveIncr*0.7071067; }
+            moveCommand_t::NORTH_WEST => { proposedLoc = self.position + self.viewDir*moveIncr*0.7071067 + self.west*moveIncr*0.7071067; }
             moveCommand_t::NONE => {}
         }
         self.MoveIfValid(proposedLoc, map);

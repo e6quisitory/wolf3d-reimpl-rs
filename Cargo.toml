@@ -12,4 +12,4 @@ ndarray = "0.15.6"
 [dependencies.sdl2]
 version = "0.35.2"
 default-features = false
-features = ["image"]
+features = ["image", "unsafe_textures"]

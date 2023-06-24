@@ -1,16 +1,55 @@
 
 /*********************************** MULTIMEDIA ***********************************/
 
+use sdl2::EventPump;
 use sdl2::{
     image,
     video::Window
 };
 use sdl2::pixels::PixelFormatEnum;
 use sdl2::rect::Rect;
-use sdl2::render::{Texture, TextureCreator};
+use sdl2::render::{Texture, TextureCreator, WindowCanvas};
 use sdl2::surface::Surface;
 use sdl2::video::WindowContext;
 use crate::UTILS::MISC_MATH::DegreesToRadians;
+
+pub struct Multimedia {
+    pub sdlContexts: SDLContexts,
+    pub sdlEventPump: EventPump,
+    pub sdlCanvas: WindowCanvas,
+    pub sdlTextureCreator: TextureCreator<WindowContext>,
+    pub windowParams: WindowParams,
+    pub renderParams: RenderParams,
+    pub assets: Assets
+}
+
+impl Multimedia {
+    pub fn New(windowWidth: usize, windowHeight: usize, fov: f64) -> Self {
+        let sdlContexts = SDLContexts::New();
+        let sdlEventPump = sdlContexts.sdlContext.event_pump().unwrap();
+        let sdlCanvas = sdlContexts
+            .CreateWindow("Wolfenstein 3D Clone - Rust", windowWidth as u32, windowHeight as u32)
+            .into_canvas()
+            .accelerated()
+            .present_vsync()
+            .build()
+            .unwrap();
+        let sdlTextureCreator = sdlCanvas.texture_creator();
+        let windowParams = WindowParams{windowWidth, windowHeight};
+        let renderParams = RenderParams::New(fov, windowWidth);
+        let assets = Assets::LoadWallTextures(&sdlTextureCreator);
+
+        return Self {
+            sdlContexts,
+            sdlEventPump,
+            sdlCanvas,
+            sdlTextureCreator,
+            windowParams,
+            renderParams,
+            assets
+        }
+    }
+}
 
 pub struct SDLContexts {
     pub sdlContext: sdl2::Sdl,
@@ -71,12 +110,12 @@ impl RenderParams {
     }
 }
 
-pub struct Assets<'a> {
-    pub wallTextures: Vec<Texture<'a>>
+pub struct Assets {
+    pub wallTextures: Vec<Texture>
 }
 
-impl<'a> Assets<'a> {
-    pub fn LoadWallTextures(sdlTextureCreator: &'a TextureCreator<WindowContext>) -> Self {
+impl Assets {
+    pub fn LoadWallTextures(sdlTextureCreator: &TextureCreator<WindowContext>) -> Self {
         let mut wallTextures: Vec<Texture> = Vec::new();
         let textureSheet = Surface::load_bmp("wall_textures.bmp").unwrap();
 
@@ -89,7 +128,7 @@ impl<'a> Assets<'a> {
         }
     }
 
-    fn ExtractTextureFromSurface(sdlTextureCreator: &'a TextureCreator<WindowContext>, textureSheet: &Surface, textureID: i32, texturePitch: i32) -> Texture<'a> {
+    fn ExtractTextureFromSurface(sdlTextureCreator: &TextureCreator<WindowContext>, textureSheet: &Surface, textureID: i32, texturePitch: i32) -> Texture {
         let textureSheetPitch = 6;
         let textureX = ((textureID - 1) % textureSheetPitch ) * texturePitch;
         let textureY = ((textureID - 1) / textureSheetPitch ) * texturePitch;
