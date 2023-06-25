@@ -8,7 +8,7 @@ use crate::{
     MAP::Map,
     UTILS::{
         RAY::Ray,
-        DDA::{ RayCursor, wallType_t }, VEC2D::iPoint2
+        DDA::RayCursor
     }
 };
 
@@ -54,14 +54,7 @@ impl GameEngine {
             let mut rayCursor = RayCursor::New(currRay, self.player.position);
             'outer: while self.map.WithinMap(rayCursor.hitTile) {
                 rayCursor.GoToNextHit();
-
-                if rayCursor.hitTile.x() == 14 || rayCursor.hitTile.y() == 31 {
-                    break 'outer;
-                }
-
-                let temp = rayCursor.hitTile;
-
-                let tileHit = self.map.GetTile(iPoint2::New(temp.x()-1, temp.y()-1)).unwrap();
+                let tileHit = self.map.GetTile(rayCursor.hitTile).unwrap();
                 let tileResponse = tileHit.RayTileHit(&mut rayCursor);
 
                 if tileResponse.is_none() {

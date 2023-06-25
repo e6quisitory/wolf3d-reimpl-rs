@@ -2,8 +2,8 @@
 
 use std::rc::Rc;
 
-use sdl2::{render::Texture, rect::Rect};
-use crate::{UTILS::{VEC2D::{Point2, Vec2}, DDA::{RayCursor, wallType_t}, CONVENTIONS::TEXTURE_PITCH}, MULTIMEDIA::Assets};
+use sdl2::{render::Texture};
+use crate::{UTILS::{VEC2D::{Point2, Vec2}, DDA::{RayCursor, wallType_t}, CONVENTIONS::TEXTURE_PITCH}};
 
 /**************** Types ****************/
 
@@ -104,7 +104,7 @@ pub struct EmptyTile {
 }
 
 impl Hittable for EmptyTile {
-    fn RayTileHit(&self, rayCursor: &mut RayCursor) -> Option<rayTileHitReturn_t> {
+    fn RayTileHit(&self, _rayCursor: &mut RayCursor) -> Option<rayTileHitReturn_t> {
         return None;
     }
 

@@ -1,7 +1,6 @@
 
 /*********************************** MAP ***********************************/
 
-use std::marker::PhantomData;
 use std::rc::Rc;
 
 use crate::MULTIMEDIA::Assets;
@@ -21,24 +20,17 @@ impl Map {
         let width = tileTextureIDs.ncols() as i32;
         let height = tileTextureIDs.nrows() as i32;
 
-        println!("{:?}", tileTextureIDs);
-
         let mut tiles: Vec<Vec<Option<Box<dyn Hittable>>>> = Vec::new();
 
-        for row in 0..height-1 {
+        for row in 0..=height-1 {
             tiles.push(Vec::new());
-            for _ in 0..width-1 {
+            for _ in 0..=width-1 {
                 tiles[row as usize].push(None);
             }
         }
 
-        println!("{:?}", width);
-        println!("{:?}", height);
-        //println!("{:?}", tiles.len());
-        //println!("{:?}", tiles[0].len());
-
-        for row in 0..height-1 {
-            for column in 0..width-1 {
+        for row in 0..=height-1 {
+            for column in 0..=width-1 {
                 tiles[row as usize][column as usize] = {
                     let tileTextureID = *tileTextureIDs.get((row as usize, column as usize)).unwrap();
                     match tileTextureID {
@@ -65,7 +57,6 @@ impl Map {
     }
 
     pub fn GetTile(&self, tileCoord: iPoint2) -> Option<&Box<dyn Hittable>> {
-        //println!("{:?}", tileCoord);
         self.tiles[tileCoord.y() as usize][tileCoord.x() as usize].as_ref()
     }
 
