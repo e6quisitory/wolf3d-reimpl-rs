@@ -8,7 +8,7 @@ use crate::{
     MAP::Map,
     UTILS::{
         RAY::Ray,
-        DDA::{ RayCursor, wallType_t }
+        DDA::{ RayCursor, wallType_t }, VEC2D::iPoint2
     }
 };
 
@@ -24,7 +24,7 @@ impl GameEngine {
         let multimedia = Multimedia::New(windowWidth, windowHeight, fov);
         let inputsBuffer = InputsBuffer::default();
         let player = Player::New();
-        let map = Map::LoadFromCSV(mapCSVPath);
+        let map = Map::LoadFromCSV(mapCSVPath, &multimedia.assets);
         
         Self {
             multimedia,
@@ -40,7 +40,7 @@ impl GameEngine {
     }
 
     pub fn RenderFrame(&mut self) {
-        self.multimedia.sdlCanvas.set_draw_color(Color::RGBA(0, 0, 0, 255));
+        //self.multimedia.sdlCanvas.set_draw_color(Color::RGBA(0, 0, 0, 255));
         self.multimedia.sdlCanvas.clear();
 
         self.multimedia.sdlCanvas.set_draw_color(Color::RGBA(50, 50, 50, 255));
@@ -52,27 +52,56 @@ impl GameEngine {
         for x in 0..self.multimedia.windowParams.windowWidth -1 {
             let currRay = Ray::New(self.player.position, self.player.viewDir.Rotate(self.multimedia.renderParams.castingRayAngles[x].0));
             let mut rayCursor = RayCursor::New(currRay, self.player.position);
-            while self.map.WithinMap(rayCursor.hitTile) {
+            'outer: while self.map.WithinMap(rayCursor.hitTile) {
                 rayCursor.GoToNextHit();
-                let textureID = self.map.GetTile(rayCursor.hitTile);
-                if textureID != 0 {
-                    let dist = rayCursor.GetDistToHitPoint();
 
-                    let propr_const = 1.15 * (self.multimedia.windowParams.windowWidth as f64) / ((16.0 / 9.0) * (self.multimedia.renderParams.fov / 72.0));
-
-                    let renderHeight = propr_const / (dist * self.multimedia.renderParams.castingRayAngles[x].1);
-                    if rayCursor.GetWallType() == wallType_t::VERTICAL {
-                        self.multimedia.sdlCanvas.set_draw_color(Color::RGBA(199, 199, 199, 255));
-                    } else {
-                        self.multimedia.sdlCanvas.set_draw_color(Color::RGBA(81, 81, 81, 255));
-                    }
-
-                    //canvas.fill_rect(Rect::new(x as i32, 0, 1, 10));
-                    let y = ((self.multimedia.windowParams.windowHeight as f64 / 2.0) - (renderHeight / 2.0)) as i32;
-                    //sdlCanvas.fill_rect(Rect::new(x as i32, y, 1, renderHeight as u32)).unwrap();
-                    let _ = self.multimedia.sdlCanvas.copy(&self.multimedia.assets.wallTextures[textureID as usize], Rect::new((rayCursor.GetWidthPercent() as f64 * 64.0) as i32, 0, 1, 64),Rect::new(x as i32, y, 1, renderHeight as u32));
-                    break;
+                if rayCursor.hitTile.x() == 14 || rayCursor.hitTile.y() == 31 {
+                    break 'outer;
                 }
+
+                let temp = rayCursor.hitTile;
+
+                let tileHit = self.map.GetTile(iPoint2::New(temp.x()-1, temp.y()-1)).unwrap();
+                let tileResponse = tileHit.RayTileHit(&mut rayCursor);
+
+                if tileResponse.is_none() {
+                    continue;
+                } else {
+                    match tileResponse.unwrap() {
+                        crate::TILES::rayTileHitReturn_t::WALL(textureSliceDistPair) => {
+                            let textureSlice = textureSliceDistPair.textureSlice;
+                            let dist = textureSliceDistPair.dist;
+
+                            let propr_const = 1.15 * (self.multimedia.windowParams.windowWidth as f64) / ((16.0 / 9.0) * (self.multimedia.renderParams.fov / 72.0));    
+                            let renderHeight = propr_const / (dist * self.multimedia.renderParams.castingRayAngles[x].1);
+                            let y = ((self.multimedia.windowParams.windowHeight as f64 / 2.0) - (renderHeight / 2.0)) as i32;
+                            let _ = self.multimedia.sdlCanvas.copy(textureSlice.texture.as_ref(), Rect::new(textureSlice.sliceX, 0, 1, 64),Rect::new(x as i32, y, 1, renderHeight as u32));
+                            break 'outer;
+                        },
+                        crate::TILES::rayTileHitReturn_t::SPRITE(_) => panic!(),
+                        crate::TILES::rayTileHitReturn_t::WALL_AND_SPRITES(_) => panic!(),
+                        crate::TILES::rayTileHitReturn_t::SPRITES(_) => panic!(),
+                    }
+                }
+
+                // if textureID != 0 {
+                //     let dist = rayCursor.GetDistToHitPoint();
+
+                //     let propr_const = 1.15 * (self.multimedia.windowParams.windowWidth as f64) / ((16.0 / 9.0) * (self.multimedia.renderParams.fov / 72.0));
+
+                //     let renderHeight = propr_const / (dist * self.multimedia.renderParams.castingRayAngles[x].1);
+                //     if rayCursor.GetWallType() == wallType_t::VERTICAL {
+                //         self.multimedia.sdlCanvas.set_draw_color(Color::RGBA(199, 199, 199, 255));
+                //     } else {
+                //         self.multimedia.sdlCanvas.set_draw_color(Color::RGBA(81, 81, 81, 255));
+                //     }
+
+                //     //canvas.fill_rect(Rect::new(x as i32, 0, 1, 10));
+                //     let y = ((self.multimedia.windowParams.windowHeight as f64 / 2.0) - (renderHeight / 2.0)) as i32;
+                //     //sdlCanvas.fill_rect(Rect::new(x as i32, y, 1, renderHeight as u32)).unwrap();
+                //     let _ = self.multimedia.sdlCanvas.copy(&self.multimedia.assets.wallTextures[textureID as usize], Rect::new((rayCursor.GetWidthPercent() as f64 * 64.0) as i32, 0, 1, 64),Rect::new(x as i32, y, 1, renderHeight as u32));
+                //     break;
+                // }
             }
         }
         self.multimedia.sdlCanvas.present();

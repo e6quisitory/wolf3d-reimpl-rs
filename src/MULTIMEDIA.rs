@@ -1,6 +1,8 @@
 
 /*********************************** MULTIMEDIA ***********************************/
 
+use std::rc::Rc;
+
 use sdl2::EventPump;
 use sdl2::{
     image,
@@ -111,12 +113,12 @@ impl RenderParams {
 }
 
 pub struct Assets {
-    pub wallTextures: Vec<Texture>
+    pub wallTextures: Vec<Rc<Texture>>
 }
 
 impl Assets {
     pub fn LoadWallTextures(sdlTextureCreator: &TextureCreator<WindowContext>) -> Self {
-        let mut wallTextures: Vec<Texture> = Vec::new();
+        let mut wallTextures: Vec<Rc<Texture>> = Vec::new();
         let textureSheet = Surface::load_bmp("wall_textures.bmp").unwrap();
 
         for textureID in 1..110 {
@@ -128,7 +130,7 @@ impl Assets {
         }
     }
 
-    fn ExtractTextureFromSurface(sdlTextureCreator: &TextureCreator<WindowContext>, textureSheet: &Surface, textureID: i32, texturePitch: i32) -> Texture {
+    fn ExtractTextureFromSurface(sdlTextureCreator: &TextureCreator<WindowContext>, textureSheet: &Surface, textureID: i32, texturePitch: i32) -> Rc<Texture> {
         let textureSheetPitch = 6;
         let textureX = ((textureID - 1) % textureSheetPitch ) * texturePitch;
         let textureY = ((textureID - 1) / textureSheetPitch ) * texturePitch;
@@ -136,6 +138,6 @@ impl Assets {
         let mut extractedTextureSurface = Surface::new(texturePitch as u32, texturePitch as u32, PixelFormatEnum::ARGB8888).unwrap();
         let _ = textureSheet.blit(Rect::new(textureX, textureY, texturePitch as u32, texturePitch as u32), &mut extractedTextureSurface, Rect::new(0, 0, texturePitch as u32, texturePitch as u32));
 
-        return sdlTextureCreator.create_texture_from_surface(&extractedTextureSurface).unwrap();
+        return Rc::new(sdlTextureCreator.create_texture_from_surface(&extractedTextureSurface).unwrap());
     }
 }

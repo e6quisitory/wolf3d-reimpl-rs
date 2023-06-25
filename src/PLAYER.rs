@@ -57,7 +57,7 @@ impl Player {
     }
 
     fn MoveIfValid(&mut self, proposedLocation: Point2, map: &Map) {
-        if map.GetTile(proposedLocation.into()) == 0 {
+        if map.GetTile(proposedLocation.into()).unwrap().PlayerTileHit() == false {
             self.position = proposedLocation;
         }
     }

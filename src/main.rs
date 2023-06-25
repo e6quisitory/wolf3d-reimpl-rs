@@ -3,6 +3,7 @@ mod MULTIMEDIA;
 mod INPUTS_BUFFER;
 mod PLAYER;
 mod MAP;
+mod TILES;
 mod GAME_ENGINE;
 
 use GAME_ENGINE::GameEngine;

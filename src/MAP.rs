@@ -1,21 +1,61 @@
 
 /*********************************** MAP ***********************************/
 
-use ndarray::Array2;
+use std::marker::PhantomData;
+use std::rc::Rc;
+
+use crate::MULTIMEDIA::Assets;
+use crate::TILES::{Hittable, Wall, TexturePair, EmptyTile};
 use crate::UTILS::VEC2D::iPoint2;
 use crate::UTILS::CSV::ParseCSV;
 
 pub struct Map {
     pub width: i32,
     pub height: i32,
-    tiles: Array2<i32>
+    tiles: Vec<Vec<Option<Box<dyn Hittable>>>>
 }
 
 impl Map {
-    pub fn LoadFromCSV(csvPath: &str) -> Self {
-        let tiles = ParseCSV(csvPath).unwrap();
-        let width = tiles.nrows() as i32;
-        let height = tiles.ncols() as i32;
+    pub fn LoadFromCSV(csvPath: &str, assets: &Assets) -> Self {
+        let tileTextureIDs = ParseCSV(csvPath).unwrap();
+        let width = tileTextureIDs.ncols() as i32;
+        let height = tileTextureIDs.nrows() as i32;
+
+        println!("{:?}", tileTextureIDs);
+
+        let mut tiles: Vec<Vec<Option<Box<dyn Hittable>>>> = Vec::new();
+
+        for row in 0..height-1 {
+            tiles.push(Vec::new());
+            for _ in 0..width-1 {
+                tiles[row as usize].push(None);
+            }
+        }
+
+        println!("{:?}", width);
+        println!("{:?}", height);
+        //println!("{:?}", tiles.len());
+        //println!("{:?}", tiles[0].len());
+
+        for row in 0..height-1 {
+            for column in 0..width-1 {
+                tiles[row as usize][column as usize] = {
+                    let tileTextureID = *tileTextureIDs.get((row as usize, column as usize)).unwrap();
+                    match tileTextureID {
+                        0 => Some(Box::new(EmptyTile {
+                            enemiesWithin: Vec::new(),
+                            spriteRenderDataList: Vec::new(),
+                        })),
+                        _ => Some(Box::new(Wall {
+                            texturePair: TexturePair {
+                                lit: Rc::clone(&assets.wallTextures[(tileTextureID-1) as usize]),
+                                unlit: Rc::clone(&assets.wallTextures[tileTextureID as usize]),
+                            }
+                        }))
+                    }
+                }
+            }
+        }
 
         Self {
             tiles,
@@ -24,11 +64,12 @@ impl Map {
         }
     }
 
-    pub fn GetTile(&self, tileCoord: iPoint2) -> i32 {
-        *self.tiles.get((tileCoord.x() as usize, tileCoord.y() as usize)).unwrap()
+    pub fn GetTile(&self, tileCoord: iPoint2) -> Option<&Box<dyn Hittable>> {
+        //println!("{:?}", tileCoord);
+        self.tiles[tileCoord.y() as usize][tileCoord.x() as usize].as_ref()
     }
 
     pub fn WithinMap(&self, tileCoord: iPoint2) -> bool {
-        (tileCoord.x() >= 0 && tileCoord.x() <= self.width) && (tileCoord.y() >= 0 && tileCoord.y() <= self.height)
+        (tileCoord.x() >= 0 && tileCoord.x() < self.width) && (tileCoord.y() >= 0 && tileCoord.y() < self.height)
     }
 }
