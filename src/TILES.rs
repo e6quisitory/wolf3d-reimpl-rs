@@ -34,12 +34,21 @@ pub enum rayTileHitReturn_t<'a> {
     SPRITES(&'a mut Vec<SpriteRenderData>)
 }
 
+#[derive(Clone, Copy, PartialEq)]
+pub enum tileType_t {
+    WALL,
+    DOOR,
+    EMPTY,
+    OBJECT,
+    COLLECTIBLE
+}
+
 /**************** Hittable Trait ****************/
 
 pub trait Hittable {
+    fn GetTileType(&self) -> tileType_t;
     fn RayTileHit(&self, rayCursor: &mut RayCursor) -> Option<rayTileHitReturn_t>;
     fn PlayerTileHit(&self) -> bool;
-    fn IsDoor(&self) -> bool;
 }
 
 /**************** Wall ****************/
@@ -49,6 +58,10 @@ pub struct Wall {
 }
 
 impl Hittable for Wall {
+    fn GetTileType(&self) -> tileType_t {
+        return tileType_t::WALL;
+    }
+
     fn RayTileHit(&self, rayCursor: &mut RayCursor) -> Option<rayTileHitReturn_t> {
         let widthPercent = rayCursor.GetWidthPercent();
         let textureX = (widthPercent * TEXTURE_PITCH as f64) as i32;
@@ -69,10 +82,6 @@ impl Hittable for Wall {
 
     fn PlayerTileHit(&self) -> bool {
         return true;
-    }
-
-    fn IsDoor(&self) -> bool {
-        return false;
     }
 }
 
@@ -117,7 +126,11 @@ impl Door {
     }
 }
 
-impl Hittable for Door {
+impl Hittable for Door {    
+    fn GetTileType(&self) -> tileType_t {
+        return tileType_t::DOOR;
+    }
+
     fn RayTileHit(&self, rayCursor: &mut RayCursor) -> Option<rayTileHitReturn_t> {
         // Center hit point
         let mut centeredHitInfo = rayCursor.GetNextCenterHit();
@@ -158,10 +171,6 @@ impl Hittable for Door {
     fn PlayerTileHit(&self) -> bool {
         return true;
     }
-
-    fn IsDoor(&self) -> bool {
-        return true;
-    }
 }
 
 /**************** EmptyTile ****************/
@@ -172,15 +181,15 @@ pub struct EmptyTile {
 }
 
 impl Hittable for EmptyTile {
+    fn GetTileType(&self) -> tileType_t {
+        return tileType_t::EMPTY;
+    }
+
     fn RayTileHit(&self, _rayCursor: &mut RayCursor) -> Option<rayTileHitReturn_t> {
         return None;
     }
 
     fn PlayerTileHit(&self) -> bool {
-        return false;
-    }
-
-    fn IsDoor(&self) -> bool {
         return false;
     }
 }

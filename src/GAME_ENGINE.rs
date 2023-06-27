@@ -9,7 +9,7 @@ use crate::{
     UTILS::{
         RAY::Ray,
         DDA::RayCursor
-    }
+    }, TILES::tileType_t
 };
 
 pub struct GameEngine {
@@ -53,7 +53,7 @@ impl GameEngine {
             let mut rayCursor = RayCursor::New(currRay, self.player.position);
             let mut prevTile = self.map.GetTile(rayCursor.hitTile).unwrap();
             while self.map.WithinMap(rayCursor.hitTile) {
-                let prevTileWasDoor = prevTile.IsDoor();
+                let prevTileWasDoor = prevTile.GetTileType() == tileType_t::DOOR;
                 rayCursor.GoToNextHit();
                 let currTile = self.map.GetTile(rayCursor.hitTile).unwrap();
                 prevTile = currTile;
