@@ -7,7 +7,6 @@ edition = "2021"
 
 [dependencies]
 csv = "1.2.2"
-lazy_static = "1.4.0"
 ndarray = "0.15.6"
 
 [dependencies.sdl2]

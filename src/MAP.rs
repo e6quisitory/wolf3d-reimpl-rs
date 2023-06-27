@@ -1,10 +1,8 @@
 
 /*********************************** MAP ***********************************/
 
-use std::rc::Rc;
-
 use crate::MULTIMEDIA::Assets;
-use crate::TILES::{Hittable, Wall, TexturePair, EmptyTile};
+use crate::TILES::{Hittable, Wall, TexturePair, EmptyTile, Door};
 use crate::UTILS::VEC2D::iPoint2;
 use crate::UTILS::CSV::ParseCSV;
 
@@ -38,10 +36,16 @@ impl Map {
                             enemiesWithin: Vec::new(),
                             spriteRenderDataList: Vec::new(),
                         })),
+                        99 => Some(Box::new(Door::New(
+                            TexturePair {
+                                lit: assets.GetWallTexture(99),
+                                unlit: assets.GetWallTexture(100)
+                            }
+                        ))),
                         _ => Some(Box::new(Wall {
                             texturePair: TexturePair {
-                                lit: Rc::clone(&assets.wallTextures[(tileTextureID-1) as usize]),
-                                unlit: Rc::clone(&assets.wallTextures[tileTextureID as usize]),
+                                lit: assets.GetWallTexture(tileTextureID),
+                                unlit: assets.GetWallTexture(tileTextureID+1),
                             }
                         }))
                     }
