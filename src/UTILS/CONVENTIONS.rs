@@ -2,7 +2,7 @@
 /*********************************** CONVENTIONS ***********************************/
 
 pub const PI: f64                 = std::f64::consts::PI;
-pub const TEXTURE_PITCH: i32      = 64;
+pub const TEXTURE_PITCH: u32      = 64;
 pub const TRANSPARENCY_COLOR: u32 = 0xFF980088;
 
 #[derive(Default, Copy, Clone)]

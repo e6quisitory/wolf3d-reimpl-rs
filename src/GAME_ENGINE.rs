@@ -42,13 +42,16 @@ impl GameEngine {
     pub fn RenderFrame(&mut self) {
         self.multimedia.sdlCanvas.clear();
 
+        // Draw ceiling
         self.multimedia.sdlCanvas.set_draw_color(Color::RGBA(50, 50, 50, 255));
         self.multimedia.sdlCanvas.fill_rect(Rect::new(0, 0, self.multimedia.windowParams.windowWidth as u32, (self.multimedia.windowParams.windowHeight/2) as u32)).unwrap();
 
+        // Draw floor
         self.multimedia.sdlCanvas.set_draw_color(Color::RGBA(96, 96, 96, 255));
         self.multimedia.sdlCanvas.fill_rect(Rect::new(0, (self.multimedia.windowParams.windowHeight / 2) as i32, self.multimedia.windowParams.windowWidth as u32, (self.multimedia.windowParams.windowHeight/2) as u32)).unwrap();
 
-        for x in 0..self.multimedia.windowParams.windowWidth -1 {
+        // Raycasting
+        for x in 0..=self.multimedia.windowParams.windowWidth-1 {
             let currRay = Ray::New(self.player.position, self.player.viewDir.Rotate(self.multimedia.renderParams.castingRayAngles[x].0));
             let mut rayCursor = RayCursor::New(currRay, self.player.position);
             let mut prevTile = self.map.GetTile(rayCursor.hitTile).unwrap();
@@ -64,18 +67,21 @@ impl GameEngine {
                 } else {
                     match currTileResponse.unwrap() {
                         crate::TILES::rayTileHitReturn_t::WALL(textureSliceDistPair) => {
-                            let mut textureSlice = textureSliceDistPair.textureSlice;
-                            let dist = textureSliceDistPair.dist;
-
-                            let propr_const = 1.15 * (self.multimedia.windowParams.windowWidth as f64) / ((16.0 / 9.0) * (self.multimedia.renderParams.fov / 72.0));    
-                            let renderHeight = propr_const / (dist * self.multimedia.renderParams.castingRayAngles[x].1);
-                            let y = ((self.multimedia.windowParams.windowHeight as f64 / 2.0) - (renderHeight / 2.0)) as i32;
                             
+                            // Texture
+                            let mut textureSlice = textureSliceDistPair.textureSlice;
                             if prevTileWasDoor {
                                 textureSlice.texture = LightTexture(&self.multimedia.assets.gateSideWallTexturePair, rayCursor.GetWallType());
                             }
 
-                            let _ = self.multimedia.sdlCanvas.copy(textureSlice.texture.as_ref(), Rect::new(textureSlice.sliceX, 0, 1, 64),Rect::new(x as i32, y, 1, renderHeight as u32));
+                            // Screen
+                            let distToHitPoint = textureSliceDistPair.dist;
+                            let renderHeight = self.multimedia.renderParams.renderHeightProprConst / (distToHitPoint * self.multimedia.renderParams.castingRayAngles[x].1);
+                            let screenY = ((self.multimedia.windowParams.windowHeight as f64 / 2.0) - (renderHeight / 2.0)) as i32;
+                            let screenRect = Rect::new(x as i32, screenY, 1, renderHeight as u32);
+
+                            // Render onto screen
+                            let _ = self.multimedia.sdlCanvas.copy(textureSlice.texture.as_ref(), textureSlice.slice, screenRect);
                                                         
                             break;
                         },
@@ -86,6 +92,8 @@ impl GameEngine {
                 }
             }
         }
+
+        // Refresh screen
         self.multimedia.sdlCanvas.present();
     }
 

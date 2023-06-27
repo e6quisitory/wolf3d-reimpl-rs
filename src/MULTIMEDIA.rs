@@ -117,11 +117,13 @@ pub struct WindowParams {
 
 pub struct RenderParams {
     pub fov: f64,
-    pub castingRayAngles: Vec<(f64, f64)>
+    pub castingRayAngles: Vec<(f64, f64)>,
+    pub renderHeightProprConst: f64
 }
 
 impl RenderParams {
     pub fn New(fov: f64, windowWidth: usize) -> Self {
+        
         // Calculate casting ray angles
         let mut castingRayAngles: Vec<(f64, f64)> = vec![(0.0, 0.0); windowWidth];
         let projectionPlaneWidth: f64 = 2.0 * DegreesToRadians(fov / 2.0).tan();
@@ -130,10 +132,14 @@ impl RenderParams {
             let currAngle = (-(x as f64 * segmentLength - (projectionPlaneWidth / 2.0))).atan();
             castingRayAngles[x] = (currAngle, currAngle.cos());
         }
+        
+        // Render height proportionality constant ; takes into account screen aspect ratio
+        let renderHeightProprConst = 1.15 * (windowWidth as f64) / ((16.0 / 9.0) * (fov / 72.0));  
 
         RenderParams {
             fov,
-            castingRayAngles
+            castingRayAngles,
+            renderHeightProprConst
         }
     }
 }

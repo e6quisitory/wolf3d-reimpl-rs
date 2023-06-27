@@ -168,7 +168,6 @@ name = "wolf3d-clone-rs"
 version = "0.1.0"
 dependencies = [
  "csv",
- "lazy_static",
  "ndarray",
  "sdl2",
 ]

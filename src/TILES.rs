@@ -2,14 +2,14 @@
 
 use std::rc::Rc;
 
-use sdl2::{render::Texture};
+use sdl2::{render::Texture, rect::Rect};
 use crate::{UTILS::{VEC2D::{Point2, Vec2}, DDA::RayCursor, CONVENTIONS::TEXTURE_PITCH}, MULTIMEDIA::LightTexture};
 
 /**************** Types ****************/
 
 pub struct TextureSlice {
     pub texture: Rc<Texture>,
-    pub sliceX: i32
+    pub slice: Rect
 }
 
 pub struct TextureSliceDistPair {
@@ -69,7 +69,7 @@ impl Hittable for Wall {
 
         let textureSlice = TextureSlice {
             texture: texture,
-            sliceX: textureX
+            slice: Rect::new(textureX, 0, 1, TEXTURE_PITCH)
         };
 
         let textureSliceDistPair = TextureSliceDistPair {
@@ -147,7 +147,7 @@ impl Hittable for Door {
                 let gateTextureX = (centeredHitInfo.GetWidthPercent() * TEXTURE_PITCH as f64) as i32;
                 let gateTextureSlice = TextureSlice {
                     texture: gateTexture,
-                    sliceX: gateTextureX,
+                    slice: Rect::new(gateTextureX, 0, 1, TEXTURE_PITCH)
                 };
                 let gateDistance = centeredHitInfo.GetDistToHitPoint();
                 let gateTextureSliceDistPair = TextureSliceDistPair {
