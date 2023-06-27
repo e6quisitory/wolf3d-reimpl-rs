@@ -2,15 +2,17 @@
 
 use sdl2::{pixels::Color, rect::Rect};
 use crate::{
-    MULTIMEDIA::{Multimedia, LightTexture},
-    INPUTS_BUFFER::InputsBuffer,
-    PLAYER::Player,
-    MAP::Map,
+    multimedia::{Multimedia, LightTexture},
+    inputs_buffer::InputsBuffer,
+    player::Player,
+    map::Map,
     UTILS::{
         RAY::Ray,
         DDA::RayCursor
-    }, TILES::tileType_t
+    }, tiles::tileType_t
 };
+
+use std::any::Any;
 
 pub struct GameEngine {
     pub multimedia: Multimedia,
@@ -37,6 +39,7 @@ impl GameEngine {
     pub fn Update(&mut self) {
         self.inputsBuffer.Update(&mut self.multimedia.sdlEventPump);
         self.player.Update(&self.inputsBuffer, &self.map);
+        self.map.UpdateDoors();
     }
 
     pub fn RenderFrame(&mut self) {
@@ -66,7 +69,7 @@ impl GameEngine {
                     continue;
                 } else {
                     match currTileResponse.unwrap() {
-                        crate::TILES::rayTileHitReturn_t::WALL(textureSliceDistPair) => {
+                        crate::tiles::rayTileHitReturn_t::WALL(textureSliceDistPair) => {
                             
                             // Texture
                             let mut textureSlice = textureSliceDistPair.textureSlice;
@@ -85,9 +88,9 @@ impl GameEngine {
                                                         
                             break;
                         },
-                        crate::TILES::rayTileHitReturn_t::SPRITE(_) => panic!(),
-                        crate::TILES::rayTileHitReturn_t::WALL_AND_SPRITES(_) => panic!(),
-                        crate::TILES::rayTileHitReturn_t::SPRITES(_) => panic!(),
+                        crate::tiles::rayTileHitReturn_t::SPRITE(_) => panic!(),
+                        crate::tiles::rayTileHitReturn_t::WALL_AND_SPRITES(_) => panic!(),
+                        crate::tiles::rayTileHitReturn_t::SPRITES(_) => panic!(),
                     }
                 }
             }

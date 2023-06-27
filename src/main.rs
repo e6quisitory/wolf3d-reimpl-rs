@@ -1,12 +1,14 @@
 mod UTILS;
-mod MULTIMEDIA;
-mod INPUTS_BUFFER;
-mod PLAYER;
-mod MAP;
-mod TILES;
+mod multimedia;
+mod inputs_buffer;
+mod player;
+mod map;
+mod tiles;
+mod game_engine;
+mod Map;
 mod GAME_ENGINE;
 
-use GAME_ENGINE::GameEngine;
+use game_engine::GameEngine;
 
 fn main() {
     let mut gameEngine = GameEngine::Init(1280, 720, 90.0, "map.csv");

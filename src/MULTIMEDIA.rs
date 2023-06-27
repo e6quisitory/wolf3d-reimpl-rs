@@ -13,7 +13,7 @@ use sdl2::rect::Rect;
 use sdl2::render::{Texture, TextureCreator, WindowCanvas};
 use sdl2::surface::Surface;
 use sdl2::video::WindowContext;
-use crate::TILES::TexturePair;
+use crate::tiles::TexturePair;
 use crate::UTILS::DDA::wallType_t;
 use crate::UTILS::MISC_MATH::DegreesToRadians;
 
@@ -22,6 +22,7 @@ pub struct Multimedia {
     pub sdlEventPump: EventPump,
     pub sdlCanvas: WindowCanvas,
     pub sdlTextureCreator: TextureCreator<WindowContext>,
+    pub displayParams: DisplayParams,
     pub windowParams: WindowParams,
     pub renderParams: RenderParams,
     pub assets: Assets
@@ -30,6 +31,7 @@ pub struct Multimedia {
 impl Multimedia {
     pub fn New(windowWidth: usize, windowHeight: usize, fov: f64) -> Self {
         let sdlContexts = SDLContexts::New();
+        let displayMode = sdlContexts.sdlVideoSubsystem.current_display_mode(0).unwrap();
         let sdlEventPump = sdlContexts.sdlContext.event_pump().unwrap();
 
         /* Fullscreen code */
@@ -63,6 +65,11 @@ impl Multimedia {
             .build()
             .unwrap();
         let sdlTextureCreator = sdlCanvas.texture_creator();
+        let displayParams = DisplayParams {
+            displayWidth: displayMode.w as usize,
+            displayHeight: displayMode.h as usize,
+            displayRefreshRate: displayMode.refresh_rate as usize
+        };
         let windowParams = WindowParams{windowWidth, windowHeight};
         let renderParams = RenderParams::New(fov, windowWidth);
         let assets = Assets::LoadWallTextures(&sdlTextureCreator);
@@ -72,6 +79,7 @@ impl Multimedia {
             sdlEventPump,
             sdlCanvas,
             sdlTextureCreator,
+            displayParams,
             windowParams,
             renderParams,
             assets
@@ -108,6 +116,12 @@ impl SDLContexts {
 
         return _sdlWindow;
     }
+}
+
+pub struct DisplayParams {
+    pub displayWidth: usize,
+    pub displayHeight: usize,
+    pub displayRefreshRate: usize
 }
 
 pub struct WindowParams {

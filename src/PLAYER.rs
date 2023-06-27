@@ -1,8 +1,8 @@
 
 /*********************************** INPUTS_BUFFER ***********************************/
 
-use crate::INPUTS_BUFFER::{InputsBuffer, lookCommand_t, moveCommand_t};
-use crate::MAP::Map;
+use crate::inputs_buffer::{InputsBuffer, lookCommand_t, moveCommand_t};
+use crate::map::Map;
 use crate::UTILS::CONVENTIONS::PI;
 use crate::UTILS::VEC2D::Vec2;
 use super::UTILS::VEC2D::Point2;

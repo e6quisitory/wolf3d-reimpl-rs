@@ -3,7 +3,7 @@
 use std::rc::Rc;
 
 use sdl2::{render::Texture, rect::Rect};
-use crate::{UTILS::{VEC2D::{Point2, Vec2}, DDA::RayCursor, CONVENTIONS::TEXTURE_PITCH}, MULTIMEDIA::LightTexture};
+use crate::{UTILS::{VEC2D::{Point2, Vec2}, DDA::RayCursor, CONVENTIONS::TEXTURE_PITCH}, multimedia::LightTexture};
 
 /**************** Types ****************/
 
@@ -49,6 +49,7 @@ pub trait Hittable {
     fn GetTileType(&self) -> tileType_t;
     fn RayTileHit(&self, rayCursor: &mut RayCursor) -> Option<rayTileHitReturn_t>;
     fn PlayerTileHit(&self) -> bool;
+    fn Update(&mut self, incr: f64);
 }
 
 /**************** Wall ****************/
@@ -83,6 +84,8 @@ impl Hittable for Wall {
     fn PlayerTileHit(&self) -> bool {
         return true;
     }
+
+    fn Update(&mut self, incr: f64) {}
 }
 
 /**************** Door ****************/
@@ -138,13 +141,16 @@ impl Hittable for Door {
         // First check if incoming ray actually intersects with middle of tile (the gate)
         if centeredHitInfo.hitTile == rayCursor.hitTile {
 
+            let centerWidthPercent = centeredHitInfo.GetWidthPercent();
+
             // Ray does intersect gate, but now check if the gate *blocks* the ray
-            if centeredHitInfo.GetWidthPercent() < self.position {
+            if centerWidthPercent < self.position {
 
                 // If ray is blocked by gate, then output the proper gate texture and rect
                 let gateTexture = LightTexture(&self.gateTexturePair, rayCursor.GetWallType());
+                let gateWidthPercent = self.position - centerWidthPercent;
 
-                let gateTextureX = (centeredHitInfo.GetWidthPercent() * TEXTURE_PITCH as f64) as i32;
+                let gateTextureX = (gateWidthPercent* TEXTURE_PITCH as f64) as i32;
                 let gateTextureSlice = TextureSlice {
                     texture: gateTexture,
                     slice: Rect::new(gateTextureX, 0, 1, TEXTURE_PITCH)
@@ -171,6 +177,12 @@ impl Hittable for Door {
     fn PlayerTileHit(&self) -> bool {
         return true;
     }
+
+    fn Update(&mut self, incr: f64) {        
+        if self.position > 0.0 {
+            self.position -= incr/10.0;
+        } 
+    }
 }
 
 /**************** EmptyTile ****************/
@@ -192,6 +204,8 @@ impl Hittable for EmptyTile {
     fn PlayerTileHit(&self) -> bool {
         return false;
     }
+
+    fn Update(&mut self, incr: f64) {}
 }
 
 /**************** Object ****************/
