@@ -145,7 +145,7 @@ impl RayCursor {
     }
 
     pub fn GetNextCenterHit(mut self) -> Self {
-        self.GoToNextHit();
+        self.GoToNextCenterHit();
         return self;
     }
 

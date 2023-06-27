@@ -13,6 +13,8 @@ use sdl2::rect::Rect;
 use sdl2::render::{Texture, TextureCreator, WindowCanvas};
 use sdl2::surface::Surface;
 use sdl2::video::WindowContext;
+use crate::TILES::TexturePair;
+use crate::UTILS::DDA::wallType_t;
 use crate::UTILS::MISC_MATH::DegreesToRadians;
 
 pub struct Multimedia {
@@ -29,6 +31,30 @@ impl Multimedia {
     pub fn New(windowWidth: usize, windowHeight: usize, fov: f64) -> Self {
         let sdlContexts = SDLContexts::New();
         let sdlEventPump = sdlContexts.sdlContext.event_pump().unwrap();
+
+        /* Fullscreen code */
+        // let display_mode = sdlContexts.sdlVideoSubsystem.current_display_mode(0).unwrap();
+
+        // println!("{}  {}", display_mode.w, display_mode.h);
+
+        // let mut sdlwindow = sdlContexts
+        //     .CreateWindow("Wolfenstein 3D Clone - Rust", display_mode.w as u32, display_mode.h as u32);
+
+        // // let mut sdlwindow = sdlContexts
+        // //     .CreateWindow("Wolfenstein 3D Clone - Rust", windowWidth as u32, windowHeight as u32);
+
+        // sdlwindow.set_fullscreen(sdl2::video::FullscreenType::Desktop);
+            
+            
+        //     let sdlCanvas = sdlwindow.into_canvas()
+        //     .accelerated()
+        //     .present_vsync()
+        //     .build()
+        //     .unwrap();
+        // let sdlTextureCreator = sdlCanvas.texture_creator();
+        // let windowParams = WindowParams{windowWidth: display_mode.w as usize, windowHeight: display_mode.h as usize};
+        // let renderParams = RenderParams::New(fov, display_mode.w as usize);
+
         let sdlCanvas = sdlContexts
             .CreateWindow("Wolfenstein 3D Clone - Rust", windowWidth as u32, windowHeight as u32)
             .into_canvas()
@@ -113,10 +139,15 @@ impl RenderParams {
 }
 
 pub struct Assets {
-    pub wallTextures: Vec<Rc<Texture>>
+    pub wallTextures: Vec<Rc<Texture>>,
+    pub gateSideWallTexturePair: TexturePair
 }
 
 impl Assets {
+    pub fn GetWallTexture(&self, textureID: i32) -> Rc<Texture> {
+        return Rc::clone(&self.wallTextures[(textureID-1) as usize]);
+    }
+
     pub fn LoadWallTextures(sdlTextureCreator: &TextureCreator<WindowContext>) -> Self {
         let mut wallTextures: Vec<Rc<Texture>> = Vec::new();
         let textureSheet = Surface::load_bmp("wall_textures.bmp").unwrap();
@@ -125,8 +156,14 @@ impl Assets {
             wallTextures.push(Self::ExtractTextureFromSurface(sdlTextureCreator, &textureSheet, textureID, 64));
         }
 
+        let gateSideWallTexturePair = TexturePair {
+            lit: Rc::clone(&wallTextures[(101-1) as usize]),
+            unlit: Rc::clone(&wallTextures[(102-1) as usize]),
+        };
+
         Self {
-            wallTextures
+            wallTextures,
+            gateSideWallTexturePair
         }
     }
 
@@ -141,3 +178,13 @@ impl Assets {
         return Rc::new(sdlTextureCreator.create_texture_from_surface(&extractedTextureSurface).unwrap());
     }
 }
+
+pub fn LightTexture(texturePair: &TexturePair, wallType: wallType_t) -> Rc<Texture> {
+    match wallType {
+        wallType_t::HORIZONTAL => Rc::clone(&texturePair.unlit),
+        wallType_t::VERTICAL => Rc::clone(&texturePair.lit),
+        wallType_t::CORNER => Rc::clone(&texturePair.unlit),
+        wallType_t::NONE => panic!()
+    }
+}
+
