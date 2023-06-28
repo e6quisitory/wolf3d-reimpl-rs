@@ -33,12 +33,9 @@ impl Player {
         }
     }
 
-    pub fn Update(&mut self, inputsBuffer: &InputsBuffer, map: &mut Map) {
+    pub fn Update(&mut self, inputsBuffer: &InputsBuffer, map: &mut Map, moveIncr: f64, swivelIncr: f64) {
         self.east = self.viewDir.Rotate(-PI/2.0);
         self.west = self.viewDir.Rotate(PI/2.0);
-
-        const swivelIncr: f64 = 0.04;
-        const moveIncr: f64 = 0.1;
 
         let mut proposedLoc: Point2 = self.position;
 
@@ -54,8 +51,8 @@ impl Player {
         self.MoveIfValid(proposedLoc, map);
 
         match inputsBuffer.lookCommand {
-            lookCommand_t::RIGHT => { self.viewDir = self.viewDir.Rotate(-swivelIncr); }
-            lookCommand_t::LEFT => { self.viewDir = self.viewDir.Rotate(swivelIncr); }
+            lookCommand_t::RIGHT => { self.viewDir = self.viewDir.Rotate(-swivelIncr*inputsBuffer.mouseAbsXrel as f64); }
+            lookCommand_t::LEFT => { self.viewDir = self.viewDir.Rotate(swivelIncr*inputsBuffer.mouseAbsXrel as f64); }
             lookCommand_t::NONE => {}
         }
 

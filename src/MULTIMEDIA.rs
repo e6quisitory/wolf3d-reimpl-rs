@@ -48,6 +48,7 @@ impl Multimedia {
         let renderParams = RenderParams::New(fov, windowWidth);
         let assets = Assets::LoadWallTextures(&sdlTextureCreator);
 
+        sdlContexts.sdlContext.mouse().set_relative_mouse_mode(true);
 
         return Self {
             sdlContexts,

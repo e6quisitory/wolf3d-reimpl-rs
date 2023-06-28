@@ -8,7 +8,7 @@ use crate::{
     map::Map,
     utils::{
         ray::Ray,
-        dda::RayCursor, vec2d::iPoint2
+        dda::RayCursor
     }, tiles::Tile
 };
 
@@ -17,7 +17,13 @@ pub struct GameEngine {
     pub inputsBuffer: InputsBuffer,
     pub player: Player,
     pub map: Map,
-    pub doorCoords: Vec<iPoint2>
+
+    // Time related
+    doorMoveIncr: f64,
+    doorTimerIncr: f64,
+    playerMoveIncr: f64,
+    playerSwivelIncr: f64
+
 }
 
 impl GameEngine {
@@ -25,28 +31,31 @@ impl GameEngine {
         let multimedia = Multimedia::New(windowWidth, windowHeight, fov);
         let inputsBuffer = InputsBuffer::default();
         let player = Player::New();
-        let (map, doorCoords) = Map::LoadFromCSV(mapCSVPath);
+        let map = Map::LoadFromCSV(mapCSVPath);
         
+        let refreshRatePropr = multimedia.displayParams.refreshRate as f64 / 60.0;
+        let doorMoveIncr = 0.02/refreshRatePropr;
+        let doorTimerIncr = 0.01/refreshRatePropr;
+        let playerMoveIncr = 0.1/refreshRatePropr;
+        let playerSwivelIncr = 0.00125/refreshRatePropr;
+
         Self {
             multimedia,
             inputsBuffer,
             player,
             map,
-            doorCoords
+
+            doorMoveIncr,
+            doorTimerIncr,
+            playerMoveIncr,
+            playerSwivelIncr
         }
     }
 
     pub fn Update(&mut self) {
         self.inputsBuffer.Update(&mut self.multimedia.sdlEventPump);
-        self.player.Update(&self.inputsBuffer, &mut self.map);
-
-        for doorCoord in &self.doorCoords {
-            if let Tile::DOOR(door) = self.map.GetMutTile(*doorCoord) {
-                let moveIncr = 0.02/(self.multimedia.displayParams.refreshRate as f64 /60.0);
-                let timerIncr = 0.01/(self.multimedia.displayParams.refreshRate as f64 /60.0);
-                door.Update(moveIncr, timerIncr, iPoint2::from(self.player.position) == *doorCoord);
-            }
-        }
+        self.player.Update(&self.inputsBuffer, &mut self.map, self.playerMoveIncr, self.playerSwivelIncr);
+        self.map.UpdateDoors(self.doorMoveIncr, self.doorTimerIncr, self.player.position);
     }
 
     pub fn RenderFrame(&mut self) {
