@@ -1,7 +1,10 @@
 
 /*********************************** MULTIMEDIA ***********************************/
 
-use sdl2::EventPump;
+use std::collections::HashMap;
+use std::hash::Hash;
+
+use sdl2::{EventPump, pixels};
 use sdl2::{
     image,
     video::Window
@@ -12,6 +15,7 @@ use sdl2::render::{Texture, TextureCreator, WindowCanvas};
 use sdl2::surface::{Surface};
 use sdl2::video::WindowContext;
 use crate::tiles::TexturePair;
+use crate::utils::conventions::TEXTURE_PITCH;
 use crate::utils::dda::RayCursor;
 use crate::utils::misc_math::DegreesToRadians;
 
@@ -46,7 +50,7 @@ impl Multimedia {
         };
         let windowParams = WindowParams{width: windowWidth, height: windowHeight};
         let renderParams = RenderParams::New(fov, windowWidth);
-        let assets = Assets::LoadWallTextures(&sdlTextureCreator);
+        let assets = Assets::New(&sdlTextureCreator);
 
         sdlContexts.sdlContext.mouse().set_relative_mouse_mode(true);
 
@@ -135,39 +139,31 @@ impl RenderParams {
 }
 
 pub struct Assets {
-    pub wallTextures: Vec<Texture>,
+    textureSheets: HashMap<TextureType, TextureSheet>,
     pub gateSidewallTexturePair: TexturePair
 }
 
 impl Assets {
-    pub fn GetWallTexture(&self, textureID: i32) -> &Texture {
-        return &self.wallTextures[(textureID-1) as usize];
-    }
+    pub fn New(sdlTextureCreator: &TextureCreator<WindowContext>) -> Self {
+        let wallTextureSheet = TextureSheet::New(sdlTextureCreator, TextureType::WALL, "wall_textures.bmp", 6, 110);
+        let objectTextureSheet = TextureSheet::New(sdlTextureCreator, TextureType::OBJECT, "objects.bmp", 5, 50);
 
-    pub fn LoadWallTextures(sdlTextureCreator: &TextureCreator<WindowContext>) -> Self {
-        let mut wallTextures: Vec<Texture> = Vec::new();
-        let textureSheet = Surface::load_bmp("wall_textures.bmp").unwrap();
+        let mut textureSheets: HashMap<TextureType, TextureSheet> = HashMap::new();
+            textureSheets.insert(TextureType::WALL, wallTextureSheet);
+            textureSheets.insert(TextureType::OBJECT, objectTextureSheet);
 
-        for textureID in 1..=110 {
-            wallTextures.push(Self::ExtractTextureFromSurface(sdlTextureCreator, &textureSheet, textureID, 64));
-        }
+        let gateSidewallTexturePair = TexturePair { litTextureID: 101, unlitTextureID: 102 };
 
         Self {
-            wallTextures,
-            gateSidewallTexturePair: TexturePair { litTextureID: 101, unlitTextureID: 102 }
+            textureSheets,
+            gateSidewallTexturePair
         }
     }
 
-    fn ExtractTextureFromSurface(sdlTextureCreator: &TextureCreator<WindowContext>, textureSheet: &Surface, textureID: i32, texturePitch: i32) -> Texture {
-        let textureSheetPitch = 6;
-        let textureX = ((textureID - 1) % textureSheetPitch ) * texturePitch;
-        let textureY = ((textureID - 1) / textureSheetPitch ) * texturePitch;
-
-        let mut extractedTextureSurface = Surface::new(texturePitch as u32, texturePitch as u32, PixelFormatEnum::ARGB8888).unwrap();
-        let _ = textureSheet.blit(Rect::new(textureX, textureY, texturePitch as u32, texturePitch as u32), &mut extractedTextureSurface, Rect::new(0, 0, texturePitch as u32, texturePitch as u32));
-
-        return sdlTextureCreator.create_texture_from_surface(&extractedTextureSurface).unwrap();
+    pub fn GetTexture(&self, textureType: TextureType, textureID: i32) -> &Texture {
+        &self.textureSheets[&textureType].textures[(textureID-1) as usize]
     }
+
 }
 
 pub fn LightTexture(rayCursor: &mut RayCursor, texturePair: &TexturePair) -> i32 {
@@ -176,6 +172,47 @@ pub fn LightTexture(rayCursor: &mut RayCursor, texturePair: &TexturePair) -> i32
         crate::utils::dda::wallType_t::VERTICAL => texturePair.litTextureID,
         crate::utils::dda::wallType_t::CORNER => texturePair.unlitTextureID,
         crate::utils::dda::wallType_t::NONE => panic!()
+    }
+}
+
+#[derive(PartialEq, Eq, Hash)]
+pub enum TextureType {
+    WALL,
+    OBJECT
+}
+
+struct TextureSheet {
+    filename: String,
+    pitch: i32,
+    pub textures: Vec<Texture>
+}
+
+impl TextureSheet {
+    fn New(sdlTextureCreator: &TextureCreator<WindowContext>, textureType: TextureType, filename: &str, sheetPitch: i32, numTextures: i32) -> Self {
+        let mut textures: Vec<Texture> = Vec::new();
+        let mut sheetSurface = Surface::load_bmp(filename).unwrap();
+
+        if textureType == TextureType::OBJECT {
+            let _ = sheetSurface.set_color_key(true, pixels::Color{r: 152, g: 0, b: 136, a: 255}).unwrap();
+        }
+
+        for textureID in 1..=numTextures {
+            textures.push ({
+                let textureX = ((textureID - 1) % sheetPitch) * TEXTURE_PITCH as i32;
+                let textureY = ((textureID - 1) / sheetPitch) * TEXTURE_PITCH as i32;
+        
+                let mut extractedTextureSurface = Surface::new(TEXTURE_PITCH, TEXTURE_PITCH, PixelFormatEnum::ARGB8888).unwrap();
+                let _ = sheetSurface.blit(Rect::new(textureX, textureY, TEXTURE_PITCH, TEXTURE_PITCH), &mut extractedTextureSurface, Rect::new(0, 0, TEXTURE_PITCH, TEXTURE_PITCH));
+        
+                sdlTextureCreator.create_texture_from_surface(&extractedTextureSurface).unwrap()
+        });
+        }
+        
+        Self {
+            filename: filename.to_string(),
+            pitch: sheetPitch,
+            textures
+        }
     }
 }
 

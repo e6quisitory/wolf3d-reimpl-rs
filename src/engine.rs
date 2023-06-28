@@ -2,7 +2,7 @@
 
 use sdl2::{pixels::Color, rect::Rect};
 use crate::{
-    multimedia::{Multimedia, LightTexture},
+    multimedia::{Multimedia, LightTexture, TextureType},
     inputs_buffer::InputsBuffer,
     player::Player,
     map::Map,
@@ -96,13 +96,13 @@ impl GameEngine {
 
                     // Texture
                     let textureSlice = textureSliceDistPair.textureSlice;
-                    let texture = self.multimedia.assets.GetWallTexture(
+                    let texture = self.multimedia.assets.GetTexture(TextureType::WALL, {
                         if prevTileWasDoor {
                             LightTexture(&mut rayCursor, &self.multimedia.assets.gateSidewallTexturePair)
                         } else {
                             textureSlice.textureID
                         }
-                    );
+                    });
 
                     // Screen
                     let distToHitPoint = textureSliceDistPair.dist;
