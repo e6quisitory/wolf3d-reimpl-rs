@@ -7,11 +7,11 @@ I've previously [implemented](https://github.com/e6quisitory/wolf3d-clone) a Wol
 - [x] Custom map loading from CSV
 - [x] Controls (WASD & arrow keys)
 - [x] Wall collision detection
+- [x] Doors
+- [x] Mouse to look around
 
 ### Remaining
-- [ ] Doors
 - [ ] Sprites (objects & enemies)
-- [ ] Mouse to look around instead of arrow keys
 - [ ] Minimap
 
 ## Current Engine Demo
