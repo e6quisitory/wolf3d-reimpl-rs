@@ -83,7 +83,7 @@ impl Wall {
 
 /**************** Door ****************/
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum DoorStatus {
     OPEN,
     CLOSED,
@@ -163,14 +163,43 @@ impl Door {
         }
     }
 
-    pub fn PlayerTileHit() -> bool {
-        return true;
+    pub fn PlayerTileHit(&self) -> bool {
+        if self.position < 0.2 {
+            false
+        } else {
+            true
+        }
     }
 
-    pub fn Update(&mut self, incr: f64) {        
-        if self.position > 0.0 {
-            self.position -= incr/10.0;
-        } 
+    pub fn Update(&mut self, moveIncr: f64, timerIncr: f64, playerInsideDoor: bool) {    
+        match self.status {
+            DoorStatus::OPEN => {
+                if !playerInsideDoor {
+                    self.timerVal -= timerIncr;
+                    if self.timerVal < 0.0 {
+                        self.status = DoorStatus::CLOSING;
+                    }
+                } else {
+                    self.timerVal = 1.0;
+                }
+            },
+            DoorStatus::OPENING => {
+                self.position -= moveIncr;
+                if self.position < 0.0 {
+                    self.position = 0.0;
+                    self.status = DoorStatus::OPEN;
+                    self.timerVal = 1.0;
+                }
+            },
+            DoorStatus::CLOSING => {
+                self.position += moveIncr;
+                if self.position > 1.0 {
+                    self.position = 1.0;
+                    self.status = DoorStatus::CLOSED;
+                }
+            },
+            DoorStatus::CLOSED => {}
+        }
     }
 }
 

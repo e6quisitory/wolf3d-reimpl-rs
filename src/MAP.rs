@@ -12,12 +12,13 @@ pub struct Map {
 }
 
 impl Map {
-    pub fn LoadFromCSV(csvPath: &str) -> Self {
+    pub fn LoadFromCSV(csvPath: &str) -> (Self, Vec<iPoint2>) {
         let tileTextureIDs = ParseCSV(csvPath).unwrap();
         let width = tileTextureIDs.ncols() as i32;
         let height = tileTextureIDs.nrows() as i32;
 
         let mut tiles: Vec<Vec<Tile>> = vec![vec![Tile::NONE; height as usize]; width as usize];
+        let mut doors: Vec<iPoint2> = Vec::new();
 
         for column in 0..width {
             for row in 0..height {
@@ -27,22 +28,34 @@ impl Map {
                     0 => Tile::EMPTY(EmptyTile::New()),
                     99 => Tile::DOOR(Door::New()),
                     _ => Tile::WALL(Wall::New(tileTextureID, tileTextureID+1))
+                };
+
+                if tileTextureID == 99 {
+                    doors.push(iPoint2::New(column, row));
                 }
             }
         }
 
-        Self {
-            tiles,
-            width,
-            height,
-        }
-    }
+        (
+            Self {
+                tiles,
+                width,
+                height,
+            },
+            doors
+        )
+
+    }  
 
     pub fn GetTile(&self, tileCoord: iPoint2) -> &Tile {
         &self.tiles[tileCoord.x() as usize][tileCoord.y() as usize]
     }
 
+    pub fn GetMutTile(&mut self, tileCoord: iPoint2) -> &mut Tile {
+        &mut self.tiles[tileCoord.x() as usize][tileCoord.y() as usize]
+    }
+
     pub fn WithinMap(&self, tileCoord: iPoint2) -> bool {
-        (tileCoord.x() >= 0 && tileCoord.x() < self.width) && (tileCoord.y() >= 0 && tileCoord.y() < self.height)
+        (tileCoord.x() > 0 && tileCoord.x() < self.width-1) && (tileCoord.y() > 0 && tileCoord.y() < self.height-1)
     }
 }

@@ -40,11 +40,11 @@ impl Multimedia {
             .unwrap();
         let sdlTextureCreator = sdlCanvas.texture_creator();
         let displayParams = DisplayParams {
-            displayWidth: displayMode.w as usize,
-            displayHeight: displayMode.h as usize,
-            displayRefreshRate: displayMode.refresh_rate as usize
+            width: displayMode.w as usize,
+            height: displayMode.h as usize,
+            refreshRate: displayMode.refresh_rate as usize
         };
-        let windowParams = WindowParams{windowWidth, windowHeight};
+        let windowParams = WindowParams{width: windowWidth, height: windowHeight};
         let renderParams = RenderParams::New(fov, windowWidth);
         let assets = Assets::LoadWallTextures(&sdlTextureCreator);
 
@@ -94,14 +94,14 @@ impl SDLContexts {
 }
 
 pub struct DisplayParams {
-    pub displayWidth: usize,
-    pub displayHeight: usize,
-    pub displayRefreshRate: usize
+    pub width: usize,
+    pub height: usize,
+    pub refreshRate: usize
 }
 
 pub struct WindowParams {
-    pub windowWidth: usize,
-    pub windowHeight: usize,
+    pub width: usize,
+    pub height: usize,
 }
 
 pub struct RenderParams {

@@ -8,7 +8,7 @@ use crate::{
     map::Map,
     utils::{
         ray::Ray,
-        dda::RayCursor
+        dda::RayCursor, vec2d::iPoint2
     }, tiles::Tile
 };
 
@@ -16,7 +16,8 @@ pub struct GameEngine {
     pub multimedia: Multimedia,
     pub inputsBuffer: InputsBuffer,
     pub player: Player,
-    pub map: Map
+    pub map: Map,
+    pub doorCoords: Vec<iPoint2>
 }
 
 impl GameEngine {
@@ -24,19 +25,28 @@ impl GameEngine {
         let multimedia = Multimedia::New(windowWidth, windowHeight, fov);
         let inputsBuffer = InputsBuffer::default();
         let player = Player::New();
-        let map = Map::LoadFromCSV(mapCSVPath);
+        let (map, doorCoords) = Map::LoadFromCSV(mapCSVPath);
         
         Self {
             multimedia,
             inputsBuffer,
             player,
-            map
+            map,
+            doorCoords
         }
     }
 
     pub fn Update(&mut self) {
         self.inputsBuffer.Update(&mut self.multimedia.sdlEventPump);
-        self.player.Update(&self.inputsBuffer, &self.map);
+        self.player.Update(&self.inputsBuffer, &mut self.map);
+
+        for doorCoord in &self.doorCoords {
+            if let Tile::DOOR(door) = self.map.GetMutTile(*doorCoord) {
+                let moveIncr = 0.02/(self.multimedia.displayParams.refreshRate as f64 /60.0);
+                let timerIncr = 0.01/(self.multimedia.displayParams.refreshRate as f64 /60.0);
+                door.Update(moveIncr, timerIncr, iPoint2::from(self.player.position) == *doorCoord);
+            }
+        }
     }
 
     pub fn RenderFrame(&mut self) {
@@ -44,14 +54,14 @@ impl GameEngine {
 
         // Draw ceiling
         self.multimedia.sdlCanvas.set_draw_color(Color::RGBA(50, 50, 50, 255));
-        self.multimedia.sdlCanvas.fill_rect(Rect::new(0, 0, self.multimedia.windowParams.windowWidth as u32, (self.multimedia.windowParams.windowHeight/2) as u32)).unwrap();
+        self.multimedia.sdlCanvas.fill_rect(Rect::new(0, 0, self.multimedia.windowParams.width as u32, (self.multimedia.windowParams.height/2) as u32)).unwrap();
 
         // Draw floor
         self.multimedia.sdlCanvas.set_draw_color(Color::RGBA(96, 96, 96, 255));
-        self.multimedia.sdlCanvas.fill_rect(Rect::new(0, (self.multimedia.windowParams.windowHeight / 2) as i32, self.multimedia.windowParams.windowWidth as u32, (self.multimedia.windowParams.windowHeight/2) as u32)).unwrap();
+        self.multimedia.sdlCanvas.fill_rect(Rect::new(0, (self.multimedia.windowParams.height / 2) as i32, self.multimedia.windowParams.width as u32, (self.multimedia.windowParams.height/2) as u32)).unwrap();
 
         // Raycasting
-        for x in 0..=self.multimedia.windowParams.windowWidth-1 {
+        for x in 0..=self.multimedia.windowParams.width-1 {
             let currRay = Ray::New(self.player.position, self.player.viewDir.Rotate(self.multimedia.renderParams.castingRayAngles[x].0));
             let mut rayCursor = RayCursor::New(currRay, self.player.position);
             let mut prevTile = self.map.GetTile(rayCursor.hitTile);
@@ -88,7 +98,7 @@ impl GameEngine {
                     // Screen
                     let distToHitPoint = textureSliceDistPair.dist;
                     let renderHeight = self.multimedia.renderParams.renderHeightProprConst / (distToHitPoint * self.multimedia.renderParams.castingRayAngles[x].1);
-                    let screenY = ((self.multimedia.windowParams.windowHeight as f64 / 2.0) - (renderHeight / 2.0)) as i32;
+                    let screenY = ((self.multimedia.windowParams.height as f64 / 2.0) - (renderHeight / 2.0)) as i32;
                     let screenRect = Rect::new(x as i32, screenY, 1, renderHeight as u32);
 
                     // Render onto screen

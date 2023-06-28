@@ -66,6 +66,7 @@ impl InputsBuffer {
         let S = ks.is_scancode_pressed(Scancode::S);
         let A = ks.is_scancode_pressed(Scancode::A);
         let D = ks.is_scancode_pressed(Scancode::D);
+        let SPACE = ks.is_scancode_pressed(Scancode::Space);
 
         if W && A { self.moveCommand = moveCommand_t::NORTH_WEST; }
         else if W && D { self.moveCommand = moveCommand_t::NORTH_EAST; }
@@ -78,5 +79,11 @@ impl InputsBuffer {
         if LEFT { self.lookCommand = lookCommand_t::LEFT; }
         else if RIGHT { self.lookCommand = lookCommand_t::RIGHT; }
         else { self.lookCommand = lookCommand_t::NONE; }
+
+        self.doorCommand = if SPACE {
+            doorCommand_t::OPEN
+        } else {
+            doorCommand_t::NONE
+        };
     }
 }
