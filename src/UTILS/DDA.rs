@@ -1,9 +1,9 @@
 
 /*********************************** DDA ***********************************/
 
-use super::RAY::*;
-use super::VEC2D::{iPoint2, Point2, Vec2};
-use super::MISC_MATH::*;
+use super::ray::*;
+use super::vec2d::{iPoint2, Point2, Vec2};
+use super::misc_math::*;
 
 /*
 =========================================================

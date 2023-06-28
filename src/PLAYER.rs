@@ -3,9 +3,9 @@
 
 use crate::inputs_buffer::{InputsBuffer, lookCommand_t, moveCommand_t};
 use crate::map::Map;
-use crate::UTILS::CONVENTIONS::PI;
-use crate::UTILS::VEC2D::Vec2;
-use super::UTILS::VEC2D::Point2;
+use crate::utils::conventions::PI;
+use crate::utils::vec2d::Vec2;
+use super::utils::vec2d::Point2;
 
 pub struct Player {
     pub position: Point2,
@@ -57,8 +57,12 @@ impl Player {
     }
 
     fn MoveIfValid(&mut self, proposedLocation: Point2, map: &Map) {
-        if map.GetTile(proposedLocation.into()).unwrap().PlayerTileHit() == false {
-            self.position = proposedLocation;
+        match map.GetTile(proposedLocation.into()) {
+            crate::tiles::Tile::EMPTY(_) => {
+                self.position = proposedLocation;
+            },
+            crate::tiles::Tile::NONE => panic!(),
+            _ => {}
         }
     }
 }

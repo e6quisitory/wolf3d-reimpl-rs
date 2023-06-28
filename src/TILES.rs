@@ -3,73 +3,68 @@
 use std::rc::Rc;
 
 use sdl2::{render::Texture, rect::Rect};
-use crate::{UTILS::{VEC2D::{Point2, Vec2}, DDA::RayCursor, CONVENTIONS::TEXTURE_PITCH}, multimedia::LightTexture};
+use crate::{utils::{vec2d::{Point2, Vec2}, dda::RayCursor, conventions::TEXTURE_PITCH}, multimedia::LightTexture};
 
 /**************** Types ****************/
 
+#[derive(Clone)]
 pub struct TextureSlice {
-    pub texture: Rc<Texture>,
+    pub textureID: i32,
     pub slice: Rect
 }
 
+#[derive(Clone)]
 pub struct TextureSliceDistPair {
     pub textureSlice: TextureSlice,
     pub dist: f64
 }
 
+#[derive(Clone)]
 pub struct SpriteRenderData {
     pub location: Point2,
-    pub texture: Rc<Texture>
+    pub textureID: i32
 }
 
+#[derive(Clone)]
 pub struct TexturePair {
-    pub lit: Rc<Texture>,
-    pub unlit: Rc<Texture>
+    pub litTextureID: i32,
+    pub unlitTextureID: i32
 }
 
-pub enum rayTileHitReturn_t<'a> {
-    WALL(TextureSliceDistPair),
-    SPRITE(SpriteRenderData),
-    WALL_AND_SPRITES((TextureSliceDistPair, &'a mut Vec<SpriteRenderData>)),
-    SPRITES(&'a mut Vec<SpriteRenderData>)
-}
-
-#[derive(Clone, Copy, PartialEq)]
-pub enum tileType_t {
-    WALL,
-    DOOR,
-    EMPTY,
-    OBJECT,
-    COLLECTIBLE
-}
-
-/**************** Hittable Trait ****************/
-
-pub trait Hittable {
-    fn GetTileType(&self) -> tileType_t;
-    fn RayTileHit(&self, rayCursor: &mut RayCursor) -> Option<rayTileHitReturn_t>;
-    fn PlayerTileHit(&self) -> bool;
-    fn Update(&mut self, incr: f64);
+#[derive(Clone)]
+pub enum Tile {
+    WALL(Wall),
+    DOOR(Door),
+    EMPTY(EmptyTile),
+    OBJECT(Object),
+    COLLECTIBLE(Collectible),
+    NONE
 }
 
 /**************** Wall ****************/
 
+#[derive(Clone)]
 pub struct Wall {
     pub texturePair: TexturePair
 }
 
-impl Hittable for Wall {
-    fn GetTileType(&self) -> tileType_t {
-        return tileType_t::WALL;
+impl Wall {
+    pub fn New(litTextureID: i32, unlitTextureID: i32) -> Self {
+        Self {
+            texturePair: TexturePair {
+                litTextureID,
+                unlitTextureID,
+            }
+        }
     }
 
-    fn RayTileHit(&self, rayCursor: &mut RayCursor) -> Option<rayTileHitReturn_t> {
+    pub fn RayTileHit(&self, rayCursor: &mut RayCursor) -> TextureSliceDistPair {
         let widthPercent = rayCursor.GetWidthPercent();
         let textureX = (widthPercent * TEXTURE_PITCH as f64) as i32;
-        let texture = LightTexture(&self.texturePair, rayCursor.GetWallType());
+        let textureID = LightTexture(rayCursor, &self.texturePair);
 
         let textureSlice = TextureSlice {
-            texture: texture,
+            textureID,
             slice: Rect::new(textureX, 0, 1, TEXTURE_PITCH)
         };
 
@@ -78,63 +73,57 @@ impl Hittable for Wall {
             dist: rayCursor.GetDistToHitPoint()
         };
 
-        return Some(rayTileHitReturn_t::WALL(textureSliceDistPair));
+        return textureSliceDistPair;
     }
 
-    fn PlayerTileHit(&self) -> bool {
+    pub fn PlayerTileHit() -> bool {
         return true;
     }
-
-    fn Update(&mut self, incr: f64) {}
 }
 
 /**************** Door ****************/
 
-pub enum doorStatus_t {
+#[derive(Clone)]
+pub enum DoorStatus {
     OPEN,
     CLOSED,
     OPENING,
     CLOSING
 }
 
-pub enum doorPosition_t {
+#[derive(Clone)]
+pub enum DoorPosition {
     OPEN = 0,
     CLOSED = 1
 }
 
-pub enum doorTimerVal_t {
+#[derive(Clone)]
+pub enum DoorTimerVal {
     NO_TIME_LEFT   = 0,
     FULL_TIME_LEFT = 1
 }
 
+#[derive(Clone)]
 pub struct Door {
     pub position: f64,
-    pub status: doorStatus_t,
+    pub status: DoorStatus,
     pub timerVal: f64,
-    pub gateTexturePair: TexturePair,
     pub enemiesWithin: Vec<Enemy>,
-    pub spriteRenderDataList: Vec<SpriteRenderData>
+    pub spriteRenderDataList: Vec<SpriteRenderData>,
 }
 
 impl Door {
-    pub fn New(gateTexturePair: TexturePair) -> Self {
+    pub fn New() -> Self {
         Self {
-            position: doorPosition_t::CLOSED as i32 as f64,
-            status: doorStatus_t::CLOSED,
-            timerVal: doorTimerVal_t::FULL_TIME_LEFT as i32 as f64,
-            gateTexturePair,
+            position: DoorPosition::CLOSED as i32 as f64,
+            status: DoorStatus::CLOSED,
+            timerVal: DoorTimerVal::FULL_TIME_LEFT as i32 as f64,
             enemiesWithin: Vec::new(),
             spriteRenderDataList: Vec::new()
         }
     }
-}
 
-impl Hittable for Door {    
-    fn GetTileType(&self) -> tileType_t {
-        return tileType_t::DOOR;
-    }
-
-    fn RayTileHit(&self, rayCursor: &mut RayCursor) -> Option<rayTileHitReturn_t> {
+    pub fn RayTileHit(&self, rayCursor: &mut RayCursor) -> Option<TextureSliceDistPair> {
         // Center hit point
         let mut centeredHitInfo = rayCursor.GetNextCenterHit();
 
@@ -147,12 +136,12 @@ impl Hittable for Door {
             if centerWidthPercent < self.position {
 
                 // If ray is blocked by gate, then output the proper gate texture and rect
-                let gateTexture = LightTexture(&self.gateTexturePair, rayCursor.GetWallType());
+                let gateTexturePair = TexturePair {litTextureID: 99, unlitTextureID: 100};
                 let gateWidthPercent = self.position - centerWidthPercent;
 
                 let gateTextureX = (gateWidthPercent* TEXTURE_PITCH as f64) as i32;
                 let gateTextureSlice = TextureSlice {
-                    texture: gateTexture,
+                    textureID: LightTexture(rayCursor, &gateTexturePair),
                     slice: Rect::new(gateTextureX, 0, 1, TEXTURE_PITCH)
                 };
                 let gateDistance = centeredHitInfo.GetDistToHitPoint();
@@ -161,7 +150,7 @@ impl Hittable for Door {
                     dist: gateDistance,
                 };
 
-                return Some(rayTileHitReturn_t::WALL(gateTextureSliceDistPair));
+                return Some(gateTextureSliceDistPair);
             } else {
                 // Ray is not blocked by gate, meaning it passes through the DoorTile entirely
                 return None;
@@ -174,11 +163,11 @@ impl Hittable for Door {
         }
     }
 
-    fn PlayerTileHit(&self) -> bool {
+    pub fn PlayerTileHit() -> bool {
         return true;
     }
 
-    fn Update(&mut self, incr: f64) {        
+    pub fn Update(&mut self, incr: f64) {        
         if self.position > 0.0 {
             self.position -= incr/10.0;
         } 
@@ -187,35 +176,39 @@ impl Hittable for Door {
 
 /**************** EmptyTile ****************/
 
+#[derive(Clone)]
 pub struct EmptyTile {
     pub enemiesWithin: Vec<Enemy>,
     pub spriteRenderDataList: Vec<SpriteRenderData>,
 }
 
-impl Hittable for EmptyTile {
-    fn GetTileType(&self) -> tileType_t {
-        return tileType_t::EMPTY;
+impl EmptyTile {
+    pub fn New() -> Self {
+        Self {
+            enemiesWithin: Vec::new(),
+            spriteRenderDataList: Vec::new()
+        }
     }
 
-    fn RayTileHit(&self, _rayCursor: &mut RayCursor) -> Option<rayTileHitReturn_t> {
+    pub fn RayTileHit() -> Option<Vec<SpriteRenderData>> {
         return None;
     }
 
-    fn PlayerTileHit(&self) -> bool {
+    pub fn PlayerTileHit() -> bool {
         return false;
     }
-
-    fn Update(&mut self, incr: f64) {}
 }
 
 /**************** Object ****************/
 
+#[derive(Clone)]
 pub struct Object {
     pub texture: Rc<Texture>
 }
 
 /**************** Collectible ****************/
 
+#[derive(Clone)]
 pub struct Collectible {
     pub texture: Rc<Texture>,
     pub collected: bool
@@ -223,6 +216,7 @@ pub struct Collectible {
 
 /**************** Enemy ****************/
 
+#[derive(Clone)]
 pub struct Enemy {
     pub position: Point2,
     pub viewDir: Vec2,

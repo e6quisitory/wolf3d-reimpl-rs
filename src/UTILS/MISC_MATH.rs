@@ -15,5 +15,5 @@ pub fn IsInteger(f: f64) -> bool {
 }
 
 pub fn DegreesToRadians(degrees: f64) -> f64 {
-    degrees*super::CONVENTIONS::PI/180.0
+    degrees*super::conventions::PI/180.0
 }

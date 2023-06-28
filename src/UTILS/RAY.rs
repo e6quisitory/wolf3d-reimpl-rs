@@ -1,9 +1,9 @@
 
 /*********************************** RAY ***********************************/
 
-use super::VEC2D::{iVec2, Point2, Vec2};
-use super::CONVENTIONS::*;
-use super::MISC_MATH::IsInteger;
+use super::vec2d::{iVec2, Point2, Vec2};
+use super::conventions::*;
+use super::misc_math::IsInteger;
 
 /*
 =================================================
