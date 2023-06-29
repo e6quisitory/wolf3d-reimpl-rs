@@ -47,11 +47,12 @@ pub struct InputsBuffer {
 
     // Mouse related
     pub mouseAbsXrel: i32,
-    prevXrel: i32
+    pub prevXrel: i32,
+    pub windowLock: bool
 }
 
 impl InputsBuffer {
-    pub fn Update(&mut self, sdlEventPump: &mut EventPump) {
+    pub fn Update(&mut self, sdlContext: &mut sdl2::Sdl, sdlEventPump: &mut EventPump) {
         
         /* Escape key and mouse */
         let mut currXrel = 0;
@@ -60,6 +61,10 @@ impl InputsBuffer {
                 Quit {..} | KeyDown { keycode: Some(Keycode::Escape), .. } => {
                     self.quit = true;
                     break;
+                },
+                KeyDown { keycode: Some(Keycode::Backquote), .. } => {
+                    sdlContext.mouse().set_relative_mouse_mode(!self.windowLock);
+                    self.windowLock = !self.windowLock;
                 },
                 MouseMotion { xrel, ..} => {
                     currXrel = xrel;

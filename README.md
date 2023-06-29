@@ -15,7 +15,7 @@ I've previously [implemented](https://github.com/e6quisitory/wolf3d-clone) a Wol
 - [ ] Minimap
 
 ## Current Engine Demo
-https://github.com/e6quisitory/wolf3d-clone-rs/assets/25702188/795677e0-c1d3-474a-9b19-89472beb5052
+https://github.com/e6quisitory/wolf3d-clone-rs/assets/25702188/ac4d754d-5bd4-4b00-ab79-9f08909f63a0
 
 ## Issues/Dev Notes
 - Things that don’t need to be pub shouldn’t be

@@ -29,7 +29,7 @@ pub struct GameEngine {
 impl GameEngine {
     pub fn Init(windowWidth: usize, windowHeight: usize, fov: f64, mapCSVPath: &str) -> Self {
         let multimedia = Multimedia::New(windowWidth, windowHeight, fov);
-        let inputsBuffer = InputsBuffer::default();
+        let inputsBuffer = InputsBuffer{windowLock: true, ..Default::default()};
         let player = Player::New();
         let map = Map::LoadFromCSV(mapCSVPath);
         
@@ -53,7 +53,7 @@ impl GameEngine {
     }
 
     pub fn Update(&mut self) {
-        self.inputsBuffer.Update(&mut self.multimedia.sdlEventPump);
+        self.inputsBuffer.Update(&mut self.multimedia.sdlContexts.sdlContext, &mut self.multimedia.sdlEventPump);
         self.player.Update(&self.inputsBuffer, &mut self.map, self.playerMoveIncr, self.playerSwivelIncr);
         self.map.UpdateDoors(self.doorMoveIncr, self.doorTimerIncr, self.player.position);
     }
