@@ -164,15 +164,12 @@ impl Door {
     }
 
     pub fn PlayerTileHit(&self) -> bool {
-        if self.position < 0.2 {
-            false
-        } else {
-            true
-        }
+        self.position > 0.2
     }
 
     pub fn Update(&mut self, moveIncr: f64, timerIncr: f64, playerInsideDoor: bool) {    
         match self.status {
+            DoorStatus::CLOSED => {},
             DoorStatus::OPEN => {
                 if !playerInsideDoor {
                     self.timerVal -= timerIncr;
@@ -197,8 +194,7 @@ impl Door {
                     self.position = 1.0;
                     self.status = DoorStatus::CLOSED;
                 }
-            },
-            DoorStatus::CLOSED => {}
+            }
         }
     }
 }

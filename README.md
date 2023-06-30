@@ -28,3 +28,6 @@ https://github.com/e6quisitory/wolf3d-clone-rs/assets/25702188/ac4d754d-5bd4-4b0
     - If enemy in doorway, do not close door
 - Implement proper config file for things like full screen, window width and height
 - Making fov higher seems to increase the height of blocks. Might need to add this into propr. constant
+
+## Later Goals
+- [ ] Port to [WebAssembly](https://rustwasm.github.io/docs/book)
