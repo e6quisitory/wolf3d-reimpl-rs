@@ -1,4 +1,5 @@
-use crate::tiles::{Wall, EmptyTile, Door, Tile};
+use crate::multimedia::TextureType;
+use crate::tiles::{Wall, EmptyTile, Door, Tile, Sprite, TextureHandle};
 use crate::utils::vec2d::{iPoint2, Point2};
 use crate::utils::csv::ParseCSV;
 
@@ -27,7 +28,15 @@ impl Map {
                 let tileTextureID = *tileTextureIDs.get((row as usize, column as usize)).unwrap();
                 
                 tiles[column as usize][row as usize] = match tileTextureID {
-                    0 => Tile::EMPTY(EmptyTile::New()),
+                    0 => Tile::EMPTY(EmptyTile::New(None)),
+                    69 => {
+                        let plant = Sprite {
+                            textureHandle: TextureHandle::New(TextureType::OBJECT, 11),
+                            location: Point2::New(column as f64 + 0.5, row as f64 + 0.5),
+                        };
+
+                        Tile::EMPTY(EmptyTile::New(Some(plant)))
+                    },
                     99 => {
                         doorCoords.push(iPoint2::New(column, row));
                         numDoors += 1;

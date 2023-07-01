@@ -9,7 +9,7 @@ use super::utils::vec2d::Point2;
 use crate::inputs_buffer::doorCommand_t;
 
 pub struct Player {
-    pub position: Point2,
+    pub location: Point2,
     pub viewDir: Vec2,
     pub east: Vec2,
     pub west: Vec2,
@@ -23,7 +23,7 @@ impl Player {
         let west = viewDir.Rotate(PI/2.0);
 
         Player {
-            position,
+            location: position,
             viewDir,
             east,
             west
@@ -34,15 +34,15 @@ impl Player {
         self.east = self.viewDir.Rotate(-PI/2.0);
         self.west = self.viewDir.Rotate(PI/2.0);
 
-        let mut proposedLoc: Point2 = self.position;
+        let mut proposedLoc: Point2 = self.location;
 
         match inputsBuffer.moveCommand {
-            moveCommand_t::NORTH => { proposedLoc = self.position + self.viewDir*moveIncr; }
-            moveCommand_t::SOUTH => { proposedLoc = self.position - self.viewDir*moveIncr; }
-            moveCommand_t::EAST => { proposedLoc = self.position + self.east*moveIncr; }
-            moveCommand_t::WEST => { proposedLoc = self.position + self.west*moveIncr; }
-            moveCommand_t::NORTH_EAST => { proposedLoc = self.position + self.viewDir*moveIncr*0.7071067 + self.east*moveIncr*0.7071067; }
-            moveCommand_t::NORTH_WEST => { proposedLoc = self.position + self.viewDir*moveIncr*0.7071067 + self.west*moveIncr*0.7071067; }
+            moveCommand_t::NORTH => { proposedLoc = self.location + self.viewDir*moveIncr; }
+            moveCommand_t::SOUTH => { proposedLoc = self.location - self.viewDir*moveIncr; }
+            moveCommand_t::EAST => { proposedLoc = self.location + self.east*moveIncr; }
+            moveCommand_t::WEST => { proposedLoc = self.location + self.west*moveIncr; }
+            moveCommand_t::NORTH_EAST => { proposedLoc = self.location + self.viewDir*moveIncr*0.7071067 + self.east*moveIncr*0.7071067; }
+            moveCommand_t::NORTH_WEST => { proposedLoc = self.location + self.viewDir*moveIncr*0.7071067 + self.west*moveIncr*0.7071067; }
             moveCommand_t::NONE => {}
         }
         self.MoveIfValid(proposedLoc, map);
@@ -55,7 +55,7 @@ impl Player {
 
         match inputsBuffer.doorCommand {
             doorCommand_t::OPEN => {
-                let mut rayCursor = RayCursor::New(Ray::New(self.position, self.viewDir), self.position);
+                let mut rayCursor = RayCursor::New(Ray::New(self.location, self.viewDir), self.location);
                 while map.WithinMap(rayCursor.hitTile) {
                     rayCursor.GoToNextHit();
                     if rayCursor.GetDistToHitPoint() > 4.0 {
@@ -86,11 +86,11 @@ impl Player {
     fn MoveIfValid(&mut self, proposedLocation: Point2, map: &Map) {
         match map.GetTile(proposedLocation.into()) {
             crate::tiles::Tile::EMPTY(_) => {
-                self.position = proposedLocation;
+                self.location = proposedLocation;
             },
             crate::tiles::Tile::DOOR(door) => {
                 if !door.PlayerTileHit() {
-                    self.position = proposedLocation;
+                    self.location = proposedLocation;
                 }
             },
             crate::tiles::Tile::NONE => panic!(),

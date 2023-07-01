@@ -167,6 +167,6 @@ impl Mul<f64> for Vec2 {
 =================================================
 */
 
-pub fn Dot(v1: &Vec2D<f64>, v2: &Vec2D<f64>) -> f64 {
+pub fn Dot(v1: Vec2D<f64>, v2: Vec2D<f64>) -> f64 {
     v1.x()*v2.x() + v1.y()*v2.y()
 }

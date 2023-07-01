@@ -1,5 +1,5 @@
 use sdl2::rect::Rect;
-use crate::{utils::{dda::RayCursor, conventions::TEXTURE_PITCH}, multimedia::{LightTexture, TextureType}};
+use crate::{utils::{dda::RayCursor, conventions::TEXTURE_PITCH, vec2d::Point2}, multimedia::{LightTexture, TextureType}};
 
 /**************************************************************** Types ****************************************************************/
 
@@ -30,6 +30,12 @@ pub struct WallSlice {
     pub textureHandle: TextureHandle,
     pub textureRect: Rect,
     pub dist: f64
+}
+
+#[derive(Copy, Clone)]
+pub struct Sprite {
+    pub textureHandle: TextureHandle,
+    pub location: Point2
 }
 
 /**************************************************************** Wall ****************************************************************/
@@ -184,18 +190,28 @@ impl Door {
 
 #[derive(Clone)]
 pub struct EmptyTile {
-    
+    sprites: Vec<Sprite>
 }
 
 impl EmptyTile {
-    pub fn New() -> Self {
+    pub fn New(initialSprite: Option<Sprite>) -> Self {
+        let mut sprites: Vec<Sprite> = Vec::new();
+        
+        if initialSprite.is_some() {
+            sprites.push(initialSprite.unwrap());
+        }
+        
         Self {
-            
+            sprites
         }
     }
 
-    pub fn RayTileHit() -> Option<WallSlice> {
-        return None;
+    pub fn GetSprites(&self) -> Option<&Vec<Sprite>> {
+        if self.sprites.is_empty() {
+            None
+        } else {
+            Some(&self.sprites)
+        }
     }
 
     pub fn PlayerTileHit() -> bool {
