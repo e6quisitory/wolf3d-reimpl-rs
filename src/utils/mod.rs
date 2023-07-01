@@ -1,6 +1,3 @@
-
-/*********************************** UTILS ***********************************/
-
 pub mod conventions;
 pub mod csv;
 pub mod dda;

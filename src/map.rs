@@ -1,6 +1,3 @@
-
-/*********************************** MAP ***********************************/
-
 use crate::tiles::{Wall, EmptyTile, Door, Tile};
 use crate::utils::vec2d::{iPoint2, Point2};
 use crate::utils::csv::ParseCSV;

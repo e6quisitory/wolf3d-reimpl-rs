@@ -1,6 +1,3 @@
-
-/*********************************** INPUTS_BUFFER ***********************************/
-
 use crate::inputs_buffer::{InputsBuffer, lookCommand_t, moveCommand_t};
 use crate::map::Map;
 use crate::tiles::{Tile, DoorStatus};

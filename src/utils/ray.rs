@@ -1,6 +1,3 @@
-
-/*********************************** RAY ***********************************/
-
 use super::vec2d::{iVec2, Point2, Vec2};
 use super::conventions::*;
 use super::misc_math::IsInteger;

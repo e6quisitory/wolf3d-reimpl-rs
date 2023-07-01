@@ -1,6 +1,3 @@
-
-/*********************************** DDA ***********************************/
-
 use super::ray::*;
 use super::vec2d::{iPoint2, Point2, Vec2};
 use super::misc_math::*;

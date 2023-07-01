@@ -1,6 +1,3 @@
-
-/*********************************** MISC_MATH ***********************************/
-
 pub fn GetDecimal(f: f64) -> f64 {
     let f_abs = f.abs();
     return f_abs - f_abs.floor();

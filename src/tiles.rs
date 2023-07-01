@@ -1,79 +1,65 @@
-/*********************************** TILES ***********************************/
+use sdl2::rect::Rect;
+use crate::{utils::{dda::RayCursor, conventions::TEXTURE_PITCH}, multimedia::{LightTexture, TextureType}};
 
-use std::rc::Rc;
-
-use sdl2::{render::Texture, rect::Rect};
-use crate::{utils::{vec2d::{Point2, Vec2}, dda::RayCursor, conventions::TEXTURE_PITCH}, multimedia::LightTexture};
-
-/**************** Types ****************/
-
-#[derive(Clone)]
-pub struct TextureSlice {
-    pub textureID: i32,
-    pub slice: Rect
-}
-
-#[derive(Clone)]
-pub struct TextureSliceDistPair {
-    pub textureSlice: TextureSlice,
-    pub dist: f64
-}
-
-#[derive(Clone)]
-pub struct SpriteRenderData {
-    pub location: Point2,
-    pub textureID: i32
-}
-
-#[derive(Clone)]
-pub struct TexturePair {
-    pub litTextureID: i32,
-    pub unlitTextureID: i32
-}
+/**************************************************************** Types ****************************************************************/
 
 #[derive(Clone)]
 pub enum Tile {
     WALL(Wall),
     DOOR(Door),
     EMPTY(EmptyTile),
-    OBJECT(Object),
-    COLLECTIBLE(Collectible),
     NONE
 }
 
-/**************** Wall ****************/
+#[derive(Copy, Clone)]
+pub struct TextureHandle {
+    pub textureType: TextureType,
+    pub ID: i32
+}
+
+impl TextureHandle {
+    pub fn New(textureType: TextureType, ID: i32) -> Self {
+        Self {
+            textureType,
+            ID
+        }
+    }
+}
+
+pub struct WallSlice {
+    pub textureHandle: TextureHandle,
+    pub textureRect: Rect,
+    pub dist: f64
+}
+
+/**************************************************************** Wall ****************************************************************/
 
 #[derive(Clone)]
 pub struct Wall {
-    pub texturePair: TexturePair
+    litTextureHandle: TextureHandle,
+    unlitTextureHandle: TextureHandle
 }
 
 impl Wall {
     pub fn New(litTextureID: i32, unlitTextureID: i32) -> Self {
         Self {
-            texturePair: TexturePair {
-                litTextureID,
-                unlitTextureID,
-            }
+            litTextureHandle:   TextureHandle::New(TextureType::WALL, litTextureID),
+            unlitTextureHandle: TextureHandle::New(TextureType::WALL, unlitTextureID)
         }
     }
 
-    pub fn RayTileHit(&self, rayCursor: &mut RayCursor) -> TextureSliceDistPair {
+    pub fn GetWallSlice(&self, rayCursor: &mut RayCursor) -> WallSlice {
+        let textureHandle = LightTexture(rayCursor, self.litTextureHandle, self.unlitTextureHandle);
         let widthPercent = rayCursor.GetWidthPercent();
         let textureX = (widthPercent * TEXTURE_PITCH as f64) as i32;
-        let textureID = LightTexture(rayCursor, &self.texturePair);
+        let textureRect = Rect::new(textureX, 0, 1, TEXTURE_PITCH);
+        let dist = rayCursor.GetDistToHitPoint();
 
-        let textureSlice = TextureSlice {
-            textureID,
-            slice: Rect::new(textureX, 0, 1, TEXTURE_PITCH)
-        };
-
-        let textureSliceDistPair = TextureSliceDistPair {
-            textureSlice,
-            dist: rayCursor.GetDistToHitPoint()
-        };
-
-        return textureSliceDistPair;
+        WallSlice {
+            textureHandle,
+            textureRect,
+            dist
+        }
     }
 
     pub fn PlayerTileHit() -> bool {
@@ -81,7 +67,7 @@ impl Wall {
     }
 }
 
-/**************** Door ****************/
+/**************************************************************** Door ****************************************************************/
 
 #[derive(Clone, PartialEq)]
 pub enum DoorStatus {
@@ -108,8 +94,6 @@ pub struct Door {
     pub position: f64,
     pub status: DoorStatus,
     pub timerVal: f64,
-    pub enemiesWithin: Vec<Enemy>,
-    pub spriteRenderDataList: Vec<SpriteRenderData>,
 }
 
 impl Door {
@@ -118,12 +102,10 @@ impl Door {
             position: DoorPosition::CLOSED as i32 as f64,
             status: DoorStatus::CLOSED,
             timerVal: DoorTimerVal::FULL_TIME_LEFT as i32 as f64,
-            enemiesWithin: Vec::new(),
-            spriteRenderDataList: Vec::new()
         }
     }
 
-    pub fn RayTileHit(&self, rayCursor: &mut RayCursor) -> Option<TextureSliceDistPair> {
+    pub fn GetWallSlice(&self, rayCursor: &mut RayCursor) -> Option<WallSlice> {
         // Center hit point
         let mut centeredHitInfo = rayCursor.GetNextCenterHit();
 
@@ -136,21 +118,20 @@ impl Door {
             if centerWidthPercent < self.position {
 
                 // If ray is blocked by gate, then output the proper gate texture and rect
-                let gateTexturePair = TexturePair {litTextureID: 99, unlitTextureID: 100};
+                let litGateTexture = TextureHandle::New(TextureType::WALL, 99);
+                let unlitGateTexture = TextureHandle::New(TextureType::WALL, 100);
+
                 let gateWidthPercent = self.position - centerWidthPercent;
-
                 let gateTextureX = (gateWidthPercent* TEXTURE_PITCH as f64) as i32;
-                let gateTextureSlice = TextureSlice {
-                    textureID: LightTexture(rayCursor, &gateTexturePair),
-                    slice: Rect::new(gateTextureX, 0, 1, TEXTURE_PITCH)
-                };
-                let gateDistance = centeredHitInfo.GetDistToHitPoint();
-                let gateTextureSliceDistPair = TextureSliceDistPair {
-                    textureSlice: gateTextureSlice,
-                    dist: gateDistance,
-                };
 
-                return Some(gateTextureSliceDistPair);
+                let gateDistance = centeredHitInfo.GetDistToHitPoint();
+                
+                Some(WallSlice {
+                    textureHandle: LightTexture(rayCursor, litGateTexture, unlitGateTexture),
+                    textureRect: Rect::new(gateTextureX, 0, 1, TEXTURE_PITCH),
+                    dist: gateDistance,
+                })
+
             } else {
                 // Ray is not blocked by gate, meaning it passes through the DoorTile entirely
                 return None;
@@ -199,51 +180,25 @@ impl Door {
     }
 }
 
-/**************** EmptyTile ****************/
+/**************************************************************** EmptyTile ****************************************************************/
 
 #[derive(Clone)]
 pub struct EmptyTile {
-    pub enemiesWithin: Vec<Enemy>,
-    pub spriteRenderDataList: Vec<SpriteRenderData>,
+    
 }
 
 impl EmptyTile {
     pub fn New() -> Self {
         Self {
-            enemiesWithin: Vec::new(),
-            spriteRenderDataList: Vec::new()
+            
         }
     }
 
-    pub fn RayTileHit() -> Option<Vec<SpriteRenderData>> {
+    pub fn RayTileHit() -> Option<WallSlice> {
         return None;
     }
 
     pub fn PlayerTileHit() -> bool {
         return false;
     }
-}
-
-/**************** Object ****************/
-
-#[derive(Clone)]
-pub struct Object {
-    pub texture: Rc<Texture>
-}
-
-/**************** Collectible ****************/
-
-#[derive(Clone)]
-pub struct Collectible {
-    pub texture: Rc<Texture>,
-    pub collected: bool
-}
-
-/**************** Enemy ****************/
-
-#[derive(Clone)]
-pub struct Enemy {
-    pub position: Point2,
-    pub viewDir: Vec2,
-    pub texture: Rc<Texture>
 }

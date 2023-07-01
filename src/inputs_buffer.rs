@@ -1,6 +1,3 @@
-
-/*********************************** INPUTS_BUFFER ***********************************/
-
 use sdl2::EventPump;
 use sdl2::keyboard::Scancode;
 use sdl2::{

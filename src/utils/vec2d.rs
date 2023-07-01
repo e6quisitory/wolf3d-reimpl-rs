@@ -1,6 +1,3 @@
-
-/*********************************** VEC2D ***********************************/
-
 use std::ops::{Add, Sub, AddAssign, SubAssign, Index, IndexMut, Neg, Mul};
 
 /*

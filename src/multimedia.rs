@@ -1,9 +1,5 @@
-
-/*********************************** MULTIMEDIA ***********************************/
-
 use std::collections::HashMap;
 use std::hash::Hash;
-
 use sdl2::{EventPump, pixels};
 use sdl2::{
     image,
@@ -14,7 +10,7 @@ use sdl2::rect::Rect;
 use sdl2::render::{Texture, TextureCreator, WindowCanvas};
 use sdl2::surface::{Surface};
 use sdl2::video::WindowContext;
-use crate::tiles::TexturePair;
+use crate::tiles::TextureHandle;
 use crate::utils::conventions::TEXTURE_PITCH;
 use crate::utils::dda::RayCursor;
 use crate::utils::misc_math::DegreesToRadians;
@@ -140,45 +136,41 @@ impl RenderParams {
 
 pub struct Assets {
     textureSheets: HashMap<TextureType, TextureSheet>,
-    pub gateSidewallTexturePair: TexturePair
 }
 
 impl Assets {
     pub fn New(sdlTextureCreator: &TextureCreator<WindowContext>) -> Self {
-        let wallTextureSheet = TextureSheet::New(sdlTextureCreator, TextureType::WALL, "wall_textures.bmp", 6, 110);
-        let objectTextureSheet = TextureSheet::New(sdlTextureCreator, TextureType::OBJECT, "objects.bmp", 5, 50);
+        let wall_TS    = TextureSheet::New(sdlTextureCreator,  "wall_textures.bmp", 6, 110, false);
+        let object_TS  = TextureSheet::New(sdlTextureCreator,  "objects.bmp", 5, 50, true);
+        let guard_TS   = TextureSheet::New(sdlTextureCreator,  "guard.bmp", 8, 51, true);
+        let officer_TS = TextureSheet::New(sdlTextureCreator,  "officer.bmp", 8, 51, true);
+        let SS_TS      = TextureSheet::New(sdlTextureCreator,  "SS.bmp", 8, 51, true);
 
         let mut textureSheets: HashMap<TextureType, TextureSheet> = HashMap::new();
-            textureSheets.insert(TextureType::WALL, wallTextureSheet);
-            textureSheets.insert(TextureType::OBJECT, objectTextureSheet);
-
-        let gateSidewallTexturePair = TexturePair { litTextureID: 101, unlitTextureID: 102 };
+            textureSheets.insert(TextureType::WALL, wall_TS);
+            textureSheets.insert(TextureType::OBJECT, object_TS);
+            textureSheets.insert(TextureType::GUARD, guard_TS);
+            textureSheets.insert(TextureType::OFFICER, officer_TS);
+            textureSheets.insert(TextureType::SS, SS_TS);
 
         Self {
-            textureSheets,
-            gateSidewallTexturePair
+            textureSheets
         }
     }
 
-    pub fn GetTexture(&self, textureType: TextureType, textureID: i32) -> &Texture {
-        &self.textureSheets[&textureType].textures[(textureID-1) as usize]
+    pub fn GetTexture(&self, textureHandle: TextureHandle) -> &Texture {
+        &self.textureSheets[&textureHandle.textureType].textures[(textureHandle.ID-1) as usize]
     }
 
 }
 
-pub fn LightTexture(rayCursor: &mut RayCursor, texturePair: &TexturePair) -> i32 {
-    match rayCursor.GetWallType() {
-        crate::utils::dda::wallType_t::HORIZONTAL => texturePair.unlitTextureID,
-        crate::utils::dda::wallType_t::VERTICAL => texturePair.litTextureID,
-        crate::utils::dda::wallType_t::CORNER => texturePair.unlitTextureID,
-        crate::utils::dda::wallType_t::NONE => panic!()
-    }
-}
-
-#[derive(PartialEq, Eq, Hash)]
+#[derive(PartialEq, Eq, Hash, Clone, Copy)]
 pub enum TextureType {
     WALL,
-    OBJECT
+    OBJECT,
+    GUARD,
+    OFFICER,
+    SS
 }
 
 struct TextureSheet {
@@ -188,11 +180,11 @@ struct TextureSheet {
 }
 
 impl TextureSheet {
-    fn New(sdlTextureCreator: &TextureCreator<WindowContext>, textureType: TextureType, filename: &str, sheetPitch: i32, numTextures: i32) -> Self {
+    fn New(sdlTextureCreator: &TextureCreator<WindowContext>, filename: &str, sheetPitch: i32, numTextures: i32, colorKey: bool) -> Self {
         let mut textures: Vec<Texture> = Vec::new();
         let mut sheetSurface = Surface::load_bmp(filename).unwrap();
 
-        if textureType == TextureType::OBJECT {
+        if colorKey {
             let _ = sheetSurface.set_color_key(true, pixels::Color{r: 152, g: 0, b: 136, a: 255}).unwrap();
         }
 
@@ -216,3 +208,11 @@ impl TextureSheet {
     }
 }
 
+pub fn LightTexture(rayCursor: &mut RayCursor, litTexture: TextureHandle, unlitTexture: TextureHandle) -> TextureHandle {
+    match rayCursor.GetWallType() {
+        crate::utils::dda::wallType_t::HORIZONTAL => unlitTexture,
+        crate::utils::dda::wallType_t::VERTICAL => litTexture,
+        crate::utils::dda::wallType_t::CORNER => unlitTexture,
+        crate::utils::dda::wallType_t::NONE => panic!()
+    }
+}

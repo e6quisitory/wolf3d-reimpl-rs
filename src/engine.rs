@@ -1,5 +1,3 @@
-/*********************************** GAME_ENGINE ***********************************/
-
 use sdl2::{pixels::Color, rect::Rect};
 use crate::{
     multimedia::{Multimedia, LightTexture, TextureType},
@@ -9,7 +7,7 @@ use crate::{
     utils::{
         ray::Ray,
         dda::RayCursor
-    }, tiles::Tile
+    }, tiles::{Tile, TextureHandle}
 };
 
 pub struct GameEngine {
@@ -81,37 +79,37 @@ impl GameEngine {
                 prevTile = currTile;
 
                 let currTileResponse = match currTile {
-                    Tile::WALL(wall) => Some(wall.RayTileHit(&mut rayCursor)),
-                    Tile::DOOR(door) => door.RayTileHit(&mut rayCursor),
+                    Tile::WALL(wall) => Some(wall.GetWallSlice(&mut rayCursor)),
+                    Tile::DOOR(door) => door.GetWallSlice(&mut rayCursor),
                     Tile::EMPTY(_) => None,
-                    Tile::OBJECT(_) => panic!(),
-                    Tile::COLLECTIBLE(_) => panic!(),
                     Tile::NONE => panic!(),
                 };
 
                 if currTileResponse.is_none() {
                     continue;
                 } else {
-                    let textureSliceDistPair = currTileResponse.unwrap();
+                    let wallSlice = currTileResponse.unwrap();
 
                     // Texture
-                    let textureSlice = textureSliceDistPair.textureSlice;
-                    let texture = self.multimedia.assets.GetTexture(TextureType::WALL, {
+                    let textureHandle = {
                         if prevTileWasDoor {
-                            LightTexture(&mut rayCursor, &self.multimedia.assets.gateSidewallTexturePair)
+                            let gateSidewall_lit = TextureHandle::New(TextureType::WALL, 101);
+                            let gateSideWall_unlit = TextureHandle::New(TextureType::WALL, 102);
+                            LightTexture(&mut rayCursor, gateSidewall_lit, gateSideWall_unlit)
                         } else {
-                            textureSlice.textureID
+                            wallSlice.textureHandle
                         }
-                    });
+                    };
+                    let texture = self.multimedia.assets.GetTexture(textureHandle);
 
                     // Screen
-                    let distToHitPoint = textureSliceDistPair.dist;
+                    let distToHitPoint = wallSlice.dist;
                     let renderHeight = self.multimedia.renderParams.renderHeightProprConst / (distToHitPoint * self.multimedia.renderParams.castingRayAngles[x].1);
                     let screenY = ((self.multimedia.windowParams.height as f64 / 2.0) - (renderHeight / 2.0)) as i32;
                     let screenRect = Rect::new(x as i32, screenY, 1, renderHeight as u32);
 
                     // Render onto screen
-                    let _ = self.multimedia.sdlCanvas.copy(texture, textureSlice.slice, screenRect);
+                    let _ = self.multimedia.sdlCanvas.copy(texture, wallSlice.textureRect, screenRect);
 
                     break;
                     }
