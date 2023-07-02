@@ -143,11 +143,11 @@ pub struct Assets {
 
 impl Assets {
     pub fn New(sdlTextureCreator: &TextureCreator<WindowContext>) -> Self {
-        let wall_TS    = TextureSheet::New(sdlTextureCreator,  "wall_textures.bmp", 6, 110, false);
-        let object_TS  = TextureSheet::New(sdlTextureCreator,  "objects.bmp", 5, 50, true);
-        let guard_TS   = TextureSheet::New(sdlTextureCreator,  "guard.bmp", 8, 51, true);
-        let officer_TS = TextureSheet::New(sdlTextureCreator,  "officer.bmp", 8, 51, true);
-        let SS_TS      = TextureSheet::New(sdlTextureCreator,  "SS.bmp", 8, 51, true);
+        let wall_TS    = TextureSheet::New(sdlTextureCreator,  "assets/wall_textures.bmp", 6, 110, false);
+        let object_TS  = TextureSheet::New(sdlTextureCreator,  "assets/objects.bmp", 5, 50, true);
+        let guard_TS   = TextureSheet::New(sdlTextureCreator,  "assets/guard.bmp", 8, 51, true);
+        let officer_TS = TextureSheet::New(sdlTextureCreator,  "assets/officer.bmp", 8, 51, true);
+        let SS_TS      = TextureSheet::New(sdlTextureCreator,  "assets/SS.bmp", 8, 51, true);
 
         let mut textureSheets: HashMap<TextureType, TextureSheet> = HashMap::new();
             textureSheets.insert(TextureType::WALL, wall_TS);

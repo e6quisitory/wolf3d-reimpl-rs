@@ -194,15 +194,15 @@ pub struct EmptyTile {
 }
 
 impl EmptyTile {
-    pub fn New(initialSprite: Option<Sprite>) -> Self {
-        let mut sprites: Vec<Sprite> = Vec::new();
-        
-        if initialSprite.is_some() {
-            sprites.push(initialSprite.unwrap());
-        }
-        
-        Self {
-            sprites
+    pub fn New(sprites: Option<Vec<Sprite>>) -> Self {        
+        if sprites.is_some() {
+            Self {
+                sprites: sprites.unwrap()
+            }
+        } else {
+            Self {
+                sprites: Vec::new()
+            }
         }
     }
 

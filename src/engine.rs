@@ -52,7 +52,7 @@ impl GameEngine {
         let refreshRatePropr = multimedia.displayParams.refreshRate as f64 / 60.0;
         let doorMoveIncr = 0.02/refreshRatePropr;
         let doorTimerIncr = 0.01/refreshRatePropr;
-        let playerMoveIncr = 0.06/refreshRatePropr;
+        let playerMoveIncr = 0.08/refreshRatePropr;
         let playerSwivelIncr = 0.00125/refreshRatePropr;
 
         let wallRenderHeights: Vec<i32> = vec![0; multimedia.windowParams.width];
@@ -148,7 +148,7 @@ impl GameEngine {
                     Tile::EMPTY(empty) => {
                         let currTileX = rayCursor.hitTile.x() as usize;
                         let currTileY = rayCursor.hitTile.y() as usize;
-                        if !self.spriteTileHitMap[currTileX][currTileY] {
+                        if self.spriteTileHitMap[currTileX][currTileY] == false {
                             let spritesArr = empty.GetSprites();
                             if spritesArr.is_some() {
                                 for sprite in spritesArr.unwrap() {

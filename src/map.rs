@@ -30,12 +30,43 @@ impl Map {
                 tiles[column as usize][row as usize] = match tileTextureID {
                     0 => Tile::EMPTY(EmptyTile::New(None)),
                     69 => {
-                        let plant = Sprite {
-                            textureHandle: TextureHandle::New(TextureType::OBJECT, 11),
-                            location: Point2::New(column as f64 + 0.5, row as f64 + 0.5),
+                        let dead_enemy = Sprite {
+                            textureHandle: TextureHandle::New(TextureType::GUARD, 45),
+                            location: Point2::New(column as f64 + 0.5, row as f64 + 0.5)
                         };
 
-                        Tile::EMPTY(EmptyTile::New(Some(plant)))
+                        let ammo = Sprite {
+                            textureHandle: TextureHandle::New(TextureType::OBJECT, 29),
+                            location: Point2::New(column as f64 + 0.15, row as f64 + 0.15)
+                        };
+
+                        let mut sprites: Vec<Sprite> = Vec::new();
+                            sprites.push(dead_enemy);
+                            sprites.push(ammo);
+
+                        Tile::EMPTY(EmptyTile::New(Some(sprites)))
+                    },
+                    420 => {
+                        let plant = Sprite {
+                            textureHandle: TextureHandle::New(TextureType::OBJECT, 11),
+                            location: Point2::New(column as f64 + 0.15, row as f64 + 0.15)
+                        };
+
+                        let mut sprites: Vec<Sprite> = Vec::new();
+                            sprites.push(plant);
+
+                        Tile::EMPTY(EmptyTile::New(Some(sprites)))
+                    },
+                    42 => {
+                        let SS = Sprite {
+                            textureHandle: TextureHandle::New(TextureType::SS, 51),
+                            location: Point2::New(column as f64 + 0.15, row as f64 + 0.15)
+                        };
+
+                        let mut sprites: Vec<Sprite> = Vec::new();
+                            sprites.push(SS);
+
+                        Tile::EMPTY(EmptyTile::New(Some(sprites)))
                     },
                     99 => {
                         doorCoords.push(iPoint2::New(column, row));
