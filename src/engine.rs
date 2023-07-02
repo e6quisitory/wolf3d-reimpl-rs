@@ -27,7 +27,7 @@ pub struct GameEngine {
     // Render related
     wallSlicesBuffer: Vec<(i32, WallSlice)>,
     spritesBuffer: Vec<Sprite>,
-    wallRenderHeights: Vec<i32>,
+    wallRenderHeights: Vec<f64>,
     spriteTileHitMap: Vec<Vec<bool>>
 }
 
@@ -44,7 +44,7 @@ impl GameEngine {
         let playerMoveIncr = 0.1/refreshRatePropr;
         let playerSwivelIncr = 0.00125/refreshRatePropr;
 
-        let wallRenderHeights: Vec<i32> = vec![0; multimedia.windowParams.width];
+        let wallRenderHeights: Vec<f64> = vec![0.0; multimedia.windowParams.width];
 
         let spriteTileHitMap: Vec<Vec<bool>> = vec![vec![false; map.height as usize]; map.width as usize];
 
@@ -164,7 +164,7 @@ impl GameEngine {
             let renderHeight = self.multimedia.renderParams.renderHeightProprConst / (distToHitPoint * self.multimedia.renderParams.castingRayAngles[x as usize].1);
             let screenY = ((self.multimedia.windowParams.height as f64 / 2.0) - (renderHeight / 2.0)) as i32;
             let screenRect = Rect::new(x as i32, screenY, 1, renderHeight as u32);
-            self.wallRenderHeights[x as usize] = renderHeight as i32;
+            self.wallRenderHeights[x as usize] = renderHeight;
 
             let texture = self.multimedia.assets.GetTexture(wallSlice.textureHandle);
 
@@ -174,8 +174,7 @@ impl GameEngine {
     }
 
     fn DrawSpritesFromBuffer(&mut self) {
-        self.spritesBuffer.reverse();
-        for sprite in &self.spritesBuffer {
+        for sprite in &self.spritesBuffer {            
             let vecToSprite = sprite.location - self.player.location;
             let spriteHitDistY = Dot(vecToSprite, self.player.viewDir);
             let spriteHitDistX = Dot(vecToSprite, self.player.east);
@@ -190,7 +189,7 @@ impl GameEngine {
                 } else if x >= self.multimedia.windowParams.width as i32 {
                     break;
                 } else {
-                    if spriteScreenRect.h >= self.wallRenderHeights[x as usize] {
+                    if self.wallRenderHeights[x as usize] <= renderHeight {
                         let spriteTextureWidthPercent = (x - spriteScreenRect.x) as f64 / (spriteScreenRect.w) as f64;
                         let spriteTextureX = (spriteTextureWidthPercent * TEXTURE_PITCH as f64) as i32;
                         let spriteTextureRect = Rect::new(spriteTextureX, 0, 1, TEXTURE_PITCH);
@@ -215,7 +214,7 @@ impl GameEngine {
 
     fn ResetWallRenderHeights(&mut self) {
         for i in 0..self.wallRenderHeights.len() {
-            self.wallRenderHeights[i] = 0;
+            self.wallRenderHeights[i] = 0.0;
         }
     }
 }

@@ -1,7 +1,8 @@
+use std::f64::consts::PI;
+
 use crate::inputs_buffer::{InputsBuffer, lookCommand_t, moveCommand_t};
 use crate::map::Map;
 use crate::tiles::{Tile, DoorStatus};
-use crate::utils::conventions::PI;
 use crate::utils::dda::RayCursor;
 use crate::utils::ray::Ray;
 use crate::utils::vec2d::Vec2;
@@ -31,8 +32,6 @@ impl Player {
     }
 
     pub fn Update(&mut self, inputsBuffer: &InputsBuffer, map: &mut Map, moveIncr: f64, swivelIncr: f64) {
-        self.east = self.viewDir.Rotate(-PI/2.0);
-        self.west = self.viewDir.Rotate(PI/2.0);
 
         let mut proposedLoc: Point2 = self.location;
 
@@ -52,6 +51,9 @@ impl Player {
             lookCommand_t::LEFT => { self.viewDir = self.viewDir.Rotate(swivelIncr*inputsBuffer.mouseAbsXrel as f64); }
             lookCommand_t::NONE => {}
         }
+
+        self.east = self.viewDir.Rotate(-PI/2.0);
+        self.west = self.viewDir.Rotate(PI/2.0);
 
         match inputsBuffer.doorCommand {
             doorCommand_t::OPEN => {

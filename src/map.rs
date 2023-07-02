@@ -31,7 +31,7 @@ impl Map {
                     0 => Tile::EMPTY(EmptyTile::New(None)),
                     69 => {
                         let plant = Sprite {
-                            textureHandle: TextureHandle::New(TextureType::OBJECT, 11),
+                            textureHandle: TextureHandle::New(TextureType::GUARD, 1),
                             location: Point2::New(column as f64 + 0.5, row as f64 + 0.5),
                         };
 
