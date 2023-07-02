@@ -8,9 +8,19 @@ use crate::{
     map::Map,
     utils::{
         ray::Ray,
-        dda::RayCursor, vec2d::Dot, conventions::TEXTURE_PITCH
+        dda::RayCursor, vec2d::{Dot, Vec2}, conventions::TEXTURE_PITCH
     }, tiles::{Tile, TextureHandle, Sprite, WallSlice}
 };
+
+struct SpriteRenderData {
+    vecToSprite: Vec2,
+    spriteHitDistY: f64,
+    spriteHitDistX: f64,
+    spriteScreenX: i32,
+    spriteRenderHeight: i32,
+    spriteScreenRect: Rect,
+    spriteTextureHandle: TextureHandle
+}
 
 pub struct GameEngine {
     pub multimedia: Multimedia,
@@ -25,9 +35,10 @@ pub struct GameEngine {
     playerSwivelIncr: f64,
 
     // Render related
-    wallSlicesBuffer: Vec<(i32, WallSlice)>,
+    wallSlicesBuffer: Vec<WallSlice>,
     spritesBuffer: Vec<Sprite>,
-    wallRenderHeights: Vec<f64>,
+    spritesRenderDataBuffer: Vec<SpriteRenderData>,
+    wallRenderHeights: Vec<i32>,
     spriteTileHitMap: Vec<Vec<bool>>
 }
 
@@ -41,10 +52,10 @@ impl GameEngine {
         let refreshRatePropr = multimedia.displayParams.refreshRate as f64 / 60.0;
         let doorMoveIncr = 0.02/refreshRatePropr;
         let doorTimerIncr = 0.01/refreshRatePropr;
-        let playerMoveIncr = 0.1/refreshRatePropr;
+        let playerMoveIncr = 0.06/refreshRatePropr;
         let playerSwivelIncr = 0.00125/refreshRatePropr;
 
-        let wallRenderHeights: Vec<f64> = vec![0.0; multimedia.windowParams.width];
+        let wallRenderHeights: Vec<i32> = vec![0; multimedia.windowParams.width];
 
         let spriteTileHitMap: Vec<Vec<bool>> = vec![vec![false; map.height as usize]; map.width as usize];
 
@@ -61,6 +72,7 @@ impl GameEngine {
 
             wallSlicesBuffer: Vec::new(),
             spritesBuffer: Vec::new(),
+            spritesRenderDataBuffer: Vec::new(),
             wallRenderHeights,
 
             spriteTileHitMap
@@ -121,13 +133,13 @@ impl GameEngine {
                             let gateSideWall_unlit = TextureHandle::New(TextureType::WALL, 102);
                             wallSlice.textureHandle = LightTexture(&mut rayCursor, gateSidewall_lit, gateSideWall_unlit);
                         }
-                        self.wallSlicesBuffer.push((x as i32, wallSlice));
+                        self.wallSlicesBuffer.push(wallSlice);
                         break;
                     },
                     Tile::DOOR(door) => {
                         let doorWallSlice = door.GetWallSlice(&mut rayCursor);
                         if doorWallSlice.is_some() {
-                            self.wallSlicesBuffer.push((x as i32, doorWallSlice.unwrap()));
+                            self.wallSlicesBuffer.push(doorWallSlice.unwrap());
                             break;
                         } else {
                             continue;
@@ -156,13 +168,12 @@ impl GameEngine {
     fn DrawWallsFromBuffer(&mut self) {
         self.ResetWallRenderHeights();
         
-        for w in &self.wallSlicesBuffer {
-            let x = w.0;
-            let wallSlice = &w.1;
-            
+        for x in 0..self.wallSlicesBuffer.len() {
+            let wallSlice = &self.wallSlicesBuffer[x];
+
             let distToHitPoint = wallSlice.dist;
-            let renderHeight = self.multimedia.renderParams.renderHeightProprConst / (distToHitPoint * self.multimedia.renderParams.castingRayAngles[x as usize].1);
-            let screenY = ((self.multimedia.windowParams.height as f64 / 2.0) - (renderHeight / 2.0)) as i32;
+            let renderHeight = (self.multimedia.renderParams.renderHeightProprConst / (distToHitPoint * self.multimedia.renderParams.castingRayAngles[x as usize].1)) as i32;
+            let screenY = (self.multimedia.windowParams.height/2) as i32 - (renderHeight / 2);
             let screenRect = Rect::new(x as i32, screenY, 1, renderHeight as u32);
             self.wallRenderHeights[x as usize] = renderHeight;
 
@@ -174,28 +185,43 @@ impl GameEngine {
     }
 
     fn DrawSpritesFromBuffer(&mut self) {
+        self.spritesRenderDataBuffer.clear();
         for sprite in &self.spritesBuffer {            
             let vecToSprite = sprite.location - self.player.location;
             let spriteHitDistY = Dot(vecToSprite, self.player.viewDir);
             let spriteHitDistX = Dot(vecToSprite, self.player.east);
-            let screenX = ((self.multimedia.windowParams.width/2) as f64 + ((self.multimedia.renderParams.projPlaneDist/spriteHitDistY)*spriteHitDistX)) as i32;
-            let renderHeight = self.multimedia.renderParams.renderHeightProprConst / spriteHitDistY;
+            let spriteScreenX = ((self.multimedia.windowParams.width/2) as f64 + ((self.multimedia.renderParams.projPlaneDist/spriteHitDistY)*spriteHitDistX)) as i32;
+            let spriteRenderHeight = (self.multimedia.renderParams.renderHeightProprConst / spriteHitDistY) as i32;
+            let spriteScreenRect = Rect::new(spriteScreenX - (spriteRenderHeight/2), (self.multimedia.windowParams.height as i32)/2 - (spriteRenderHeight/2), spriteRenderHeight as u32, spriteRenderHeight as u32);
+            let spriteTextureHandle = sprite.textureHandle;
 
-            let spriteScreenRect = Rect::new(screenX - (renderHeight/2.0) as i32, (self.multimedia.windowParams.height as i32)/2 - (renderHeight/2.0) as i32, renderHeight as u32, renderHeight as u32);
-        
-            for x in spriteScreenRect.x..(spriteScreenRect.x+spriteScreenRect.w) {
+            self.spritesRenderDataBuffer.push(SpriteRenderData {
+                vecToSprite,
+                spriteHitDistY,
+                spriteHitDistX,
+                spriteScreenX,
+                spriteRenderHeight,
+                spriteScreenRect,
+                spriteTextureHandle
+            });
+        }
+
+        self.spritesRenderDataBuffer.sort_by(|a, b| a.spriteRenderHeight.partial_cmp(&b.spriteRenderHeight).unwrap());
+
+        for s in &self.spritesRenderDataBuffer {
+            for x in s.spriteScreenRect.x..(s.spriteScreenRect.x+s.spriteScreenRect.w) {
                 if x < 0 {
                     continue;
                 } else if x >= self.multimedia.windowParams.width as i32 {
                     break;
                 } else {
-                    if self.wallRenderHeights[x as usize] <= renderHeight {
-                        let spriteTextureWidthPercent = (x - spriteScreenRect.x) as f64 / (spriteScreenRect.w) as f64;
+                    if self.wallRenderHeights[x as usize] <= s.spriteRenderHeight {
+                        let spriteTextureWidthPercent = (x - s.spriteScreenRect.x) as f64 / (s.spriteScreenRect.w) as f64;
                         let spriteTextureX = (spriteTextureWidthPercent * TEXTURE_PITCH as f64) as i32;
                         let spriteTextureRect = Rect::new(spriteTextureX, 0, 1, TEXTURE_PITCH);
-                        let screenRect = Rect::new(x, spriteScreenRect.y, 1, spriteScreenRect.h as u32);
+                        let screenRect = Rect::new(x, s.spriteScreenRect.y, 1, s.spriteScreenRect.h as u32);
                         
-                        let texture = self.multimedia.assets.GetTexture(sprite.textureHandle);
+                        let texture = self.multimedia.assets.GetTexture(s.spriteTextureHandle);
 
                         let _ = self.multimedia.sdlCanvas.copy(texture, spriteTextureRect, screenRect);
                     }
@@ -214,7 +240,7 @@ impl GameEngine {
 
     fn ResetWallRenderHeights(&mut self) {
         for i in 0..self.wallRenderHeights.len() {
-            self.wallRenderHeights[i] = 0.0;
+            self.wallRenderHeights[i] = 0;
         }
     }
 }

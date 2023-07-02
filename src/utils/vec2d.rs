@@ -74,7 +74,7 @@ impl<T: ValidVecElement> Vec2D<T> {
 
 impl Vec2 {
     pub fn LengthSquared(&self) -> f64 {
-        self.e[1].powi(2) + self.e[1].powi(2)
+        self.e[0].powi(2) + self.e[1].powi(2)
     }
 
     pub fn Length(&self) -> f64 {
