@@ -17,14 +17,13 @@ pub struct Player {
 }
 
 impl Player {
-    pub fn New() -> Self {
-        let position = Point2::New(4.127, 5.033);
-        let viewDir = Point2::New(-0.019038625821465295, 0.7068504302374231).UnitVector();
+    pub fn New(location: Point2) -> Self {
+        let viewDir = Point2::New(1.0, 1.0).UnitVector();
         let east = viewDir.Rotate(-PI/2.0);
         let west = viewDir.Rotate(PI/2.0);
 
         Player {
-            location: position,
+            location,
             viewDir,
             east,
             west
@@ -70,6 +69,8 @@ impl Player {
                             Tile::DOOR(hitDoor) => {
                                 if hitDoor.status == DoorStatus::CLOSED || hitDoor.status == DoorStatus::CLOSING {
                                     (*hitDoor).status = DoorStatus::OPENING;
+                                    break;
+                                } else if hitDoor.status == DoorStatus::OPENING {
                                     break;
                                 }
                             },

@@ -114,7 +114,7 @@ impl RayCursor {
             self.hitPoint = nextY;
             self.hitTile += self.ray.yDirVec;
         } else {
-            self.hitPoint = self.ray.direction;
+            self.hitPoint = nextX; // can be either nextX or nextY both will be the same
             self.hitTile += self.ray.xDirVec + self.ray.yDirVec;
         }
 

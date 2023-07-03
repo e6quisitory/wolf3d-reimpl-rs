@@ -1,9 +1,9 @@
 use std::error::Error;
 use std::fs::File;
 use csv::ReaderBuilder;
-use ndarray::Array2;
+use ndarray::{Array2, s};
 
-pub fn ParseCSV(path: &str) -> Result<Array2<i32>, Box<dyn Error>> {
+pub fn ParseCSV(path: &str) -> Result<Array2<(String, Option<i32>)>, Box<dyn Error>> {
     // Open the file
     let file = File::open(path)?;
 
@@ -27,8 +27,13 @@ pub fn ParseCSV(path: &str) -> Result<Array2<i32>, Box<dyn Error>> {
 
         let mut row = Vec::new();
         for field in record.iter() {
-            // Convert each field to an integer, using 0 if the field is empty
-            let value: i32 = field.parse().unwrap_or(0);
+            // Split the field into parts by '-'
+            let parts: Vec<&str> = field.split('-').collect();
+            // First part is a string and the second part is an integer (if present)
+            let value = (
+                parts[0].to_string(), 
+                parts.get(1).and_then(|s| s.parse::<i32>().ok())
+            );
             row.push(value);
         }
 
@@ -42,25 +47,17 @@ pub fn ParseCSV(path: &str) -> Result<Array2<i32>, Box<dyn Error>> {
     for row in &mut array_data {
         let diff = max_len - row.len();
         if diff > 0 {
-            row.extend(vec![0; diff]);
+            row.extend(vec![("".to_string(), None); diff]);
         }
     }
 
     // Convert the data to a 2D array
-    let mut array: Array2<i32> = ndarray::Array::from_shape_vec((array_data.len(), max_len), array_data.concat())
+    let array: Array2<(String, Option<i32>)> = ndarray::Array::from_shape_vec((array_data.len(), max_len), array_data.concat())
         .expect("Error converting to 2D array");
 
-    // Adjust perimeter values to be 1 if they are 0
-    let (max_i, max_j) = (array.nrows() - 1, array.ncols() - 1);
-    for i in 0..=max_i {
-        for j in 0..=max_j {
-            if i == 0 || j == 0 || i == max_i || j == max_j {
-                if array[[i, j]] == 0 {
-                    array[[i, j]] = 1;
-                }
-            }
-        }
-    }
+    // Flip the array both horizontally and vertically
+    let flipped_array = array.slice(s![..;-1, ..]).to_owned();
 
-    Ok(array)
+    Ok(flipped_array)
 }
+

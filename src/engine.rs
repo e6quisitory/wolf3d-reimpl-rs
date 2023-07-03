@@ -8,7 +8,7 @@ use crate::{
     map::Map,
     utils::{
         ray::Ray,
-        dda::RayCursor, vec2d::{Dot, Vec2}, conventions::TEXTURE_PITCH
+        dda::RayCursor, vec2d::{Dot, Vec2, Point2}, conventions::TEXTURE_PITCH
     }, tiles::{Tile, TextureHandle, Sprite, WallSlice}
 };
 
@@ -46,7 +46,7 @@ impl GameEngine {
     pub fn Init(windowWidth: usize, windowHeight: usize, fov: f64, mapCSVPath: &str) -> Self {
         let multimedia = Multimedia::New(windowWidth, windowHeight, fov);
         let inputsBuffer = InputsBuffer{windowLock: true, ..Default::default()};
-        let player = Player::New();
+        let player = Player::New(Point2::New(1.5, 1.5));
         let map = Map::LoadFromCSV(mapCSVPath);
         
         let refreshRatePropr = multimedia.displayParams.refreshRate as f64 / 60.0;
@@ -167,7 +167,6 @@ impl GameEngine {
 
     fn DrawWallsFromBuffer(&mut self) {
         self.ResetWallRenderHeights();
-        
         for x in 0..self.wallSlicesBuffer.len() {
             let wallSlice = &self.wallSlicesBuffer[x];
 

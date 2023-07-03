@@ -7,10 +7,7 @@ pub struct Map {
     pub width: i32,
     pub height: i32,
     tiles: Vec<Vec<Tile>>,
-
-    // Doors related
-    doorCoords: Vec<iPoint2>,
-    numDoors: usize
+    doorTileCoords: Vec<iPoint2>,
 }
 
 impl Map {
@@ -20,47 +17,47 @@ impl Map {
         let height = tileTextureIDs.nrows() as i32;
         let mut tiles: Vec<Vec<Tile>> = vec![vec![Tile::NONE; height as usize]; width as usize];
         
-        let mut doorCoords: Vec<iPoint2> = Vec::new();
-        let mut numDoors: usize = 0;
+        let mut doorTileCoords: Vec<iPoint2> = Vec::new();
 
         for column in 0..width {
             for row in 0..height {
-                let tileTextureID = *tileTextureIDs.get((row as usize, column as usize)).unwrap();
-                
-                tiles[column as usize][row as usize] = match tileTextureID {
-                    0 => Tile::EMPTY(EmptyTile::New(None)),
-                    69 => {
-                        let dead_enemy = Sprite {
-                            textureHandle: TextureHandle::New(TextureType::GUARD, 45),
+                let tileCode = tileTextureIDs.get((row as usize, column as usize)).unwrap();
+                let tileTypeCode = tileCode.0.clone();
+                let tileTextureID = tileCode.1;
+
+                tiles[column as usize][row as usize] = match tileTypeCode.as_str() {
+                    "" => Tile::EMPTY(EmptyTile::New(None)),
+                    "W" => Tile::WALL(Wall::New(tileTextureID.unwrap(), tileTextureID.unwrap()+1)),
+                    "D" => {
+                        doorTileCoords.push(iPoint2::New(column, row));
+                        Tile::DOOR(Door::New())
+                    },
+                    "GU" => {
+                        let guard = Sprite {
+                            textureHandle: TextureHandle::New(TextureType::GUARD, 1),
                             location: Point2::New(column as f64 + 0.5, row as f64 + 0.5)
                         };
 
-                        let ammo = Sprite {
-                            textureHandle: TextureHandle::New(TextureType::OBJECT, 29),
-                            location: Point2::New(column as f64 + 0.15, row as f64 + 0.15)
-                        };
-
                         let mut sprites: Vec<Sprite> = Vec::new();
-                            sprites.push(dead_enemy);
-                            sprites.push(ammo);
+                            sprites.push(guard);
 
                         Tile::EMPTY(EmptyTile::New(Some(sprites)))
                     },
-                    420 => {
-                        let plant = Sprite {
-                            textureHandle: TextureHandle::New(TextureType::OBJECT, 11),
-                            location: Point2::New(column as f64 + 0.15, row as f64 + 0.15)
+                    "OF" => {
+                        let officer = Sprite {
+                            textureHandle: TextureHandle::New(TextureType::OFFICER, 1),
+                            location: Point2::New(column as f64 + 0.5, row as f64 + 0.5)
                         };
 
                         let mut sprites: Vec<Sprite> = Vec::new();
-                            sprites.push(plant);
+                            sprites.push(officer);
 
                         Tile::EMPTY(EmptyTile::New(Some(sprites)))
                     },
-                    42 => {
+                    "SS" => {
                         let SS = Sprite {
-                            textureHandle: TextureHandle::New(TextureType::SS, 51),
-                            location: Point2::New(column as f64 + 0.15, row as f64 + 0.15)
+                            textureHandle: TextureHandle::New(TextureType::SS, 1),
+                            location: Point2::New(column as f64 + 0.5, row as f64 + 0.5)
                         };
 
                         let mut sprites: Vec<Sprite> = Vec::new();
@@ -68,13 +65,18 @@ impl Map {
 
                         Tile::EMPTY(EmptyTile::New(Some(sprites)))
                     },
-                    99 => {
-                        doorCoords.push(iPoint2::New(column, row));
-                        numDoors += 1;
-                        
-                        Tile::DOOR(Door::New())
+                    "O" => {
+                        let object = Sprite {
+                            textureHandle: TextureHandle::New(TextureType::OBJECT, tileTextureID.unwrap()),
+                            location: Point2::New(column as f64 + 0.5, row as f64 + 0.5)
+                        };
+
+                        let mut sprites: Vec<Sprite> = Vec::new();
+                            sprites.push(object);
+
+                        Tile::EMPTY(EmptyTile::New(Some(sprites)))
                     },
-                    _ => Tile::WALL(Wall::New(tileTextureID, tileTextureID+1))
+                    _ => panic!()
                 };
             }
         }
@@ -83,8 +85,7 @@ impl Map {
             tiles,
             width,
             height,
-            doorCoords,
-            numDoors
+            doorTileCoords,
         }
 
     }  
@@ -102,8 +103,8 @@ impl Map {
     }
 
     pub fn UpdateDoors(&mut self, moveIncr: f64, timerIncr: f64, playerLoc: Point2) {
-        for doorIndex in 0..self.numDoors {
-            let doorCoord = self.doorCoords[doorIndex];
+        for doorIndex in 0..self.doorTileCoords.len() {
+            let doorCoord = self.doorTileCoords[doorIndex];
             if let Tile::DOOR(door) = self.GetMutTile(doorCoord) {
                 door.Update(moveIncr, timerIncr, iPoint2::from(playerLoc) == doorCoord);
             }

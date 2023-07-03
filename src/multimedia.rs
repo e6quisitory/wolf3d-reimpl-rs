@@ -14,6 +14,7 @@ use crate::tiles::TextureHandle;
 use crate::utils::conventions::TEXTURE_PITCH;
 use crate::utils::dda::RayCursor;
 use crate::utils::misc_math::DegreesToRadians;
+use crate::utils::dda::wallType_t;
 
 pub struct Multimedia {
     pub sdlContexts: SDLContexts,
@@ -213,9 +214,9 @@ impl TextureSheet {
 
 pub fn LightTexture(rayCursor: &mut RayCursor, litTexture: TextureHandle, unlitTexture: TextureHandle) -> TextureHandle {
     match rayCursor.GetWallType() {
-        crate::utils::dda::wallType_t::HORIZONTAL => unlitTexture,
-        crate::utils::dda::wallType_t::VERTICAL => litTexture,
-        crate::utils::dda::wallType_t::CORNER => unlitTexture,
-        crate::utils::dda::wallType_t::NONE => panic!()
+        wallType_t::HORIZONTAL => unlitTexture,
+        wallType_t::VERTICAL => litTexture,
+        wallType_t::CORNER => unlitTexture,
+        wallType_t::NONE => panic!()
     }
 }
