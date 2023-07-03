@@ -34,6 +34,7 @@ impl Map {
                     },
                     "GU" => {
                         let guard = Sprite {
+                            spriteType: crate::tiles::SpriteType::ENEMY,
                             textureHandle: TextureHandle::New(TextureType::GUARD, 1),
                             location: Point2::New(column as f64 + 0.5, row as f64 + 0.5)
                         };
@@ -45,6 +46,7 @@ impl Map {
                     },
                     "OF" => {
                         let officer = Sprite {
+                            spriteType: crate::tiles::SpriteType::ENEMY,
                             textureHandle: TextureHandle::New(TextureType::OFFICER, 1),
                             location: Point2::New(column as f64 + 0.5, row as f64 + 0.5)
                         };
@@ -56,6 +58,7 @@ impl Map {
                     },
                     "SS" => {
                         let SS = Sprite {
+                            spriteType: crate::tiles::SpriteType::ENEMY,
                             textureHandle: TextureHandle::New(TextureType::SS, 1),
                             location: Point2::New(column as f64 + 0.5, row as f64 + 0.5)
                         };
@@ -67,6 +70,7 @@ impl Map {
                     },
                     "O" => {
                         let object = Sprite {
+                            spriteType: crate::tiles::SpriteType::OBJECT,
                             textureHandle: TextureHandle::New(TextureType::OBJECT, tileTextureID.unwrap()),
                             location: Point2::New(column as f64 + 0.5, row as f64 + 0.5)
                         };

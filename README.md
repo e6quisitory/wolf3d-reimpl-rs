@@ -9,24 +9,17 @@ I've previously [implemented](https://github.com/e6quisitory/wolf3d-clone) a Wol
 - [x] Wall collision detection
 - [x] Doors
 - [x] Mouse to look around
+- [x] Sprites (objects & enemies)
 
 ### Remaining
-- [ ] Sprites (objects & enemies)
 - [ ] Minimap
 
 ## Current Engine Demo
-https://github.com/e6quisitory/wolf3d-clone-rs/assets/25702188/ac4d754d-5bd4-4b00-ab79-9f08909f63a0
+https://github.com/e6quisitory/wolf3d-clone-rs/assets/25702188/9ba6f8e1-b113-4c07-8c96-c80e9bdc7c87
 
 ## Issues/Dev Notes
 - Things that don’t need to be pub shouldn’t be
-- Clean up texture structs and enums, quite confusing right now
-- New CSV parser to take into account different tile types
-- Implement sprite rendering logic; currently only have wall & door render logic
-    - Will mean having tiles that store sprites, like doors storing sprites
-    - When an enemy dies, they leave behind ammo. So will need dead body sprite + collectible inside one tile
-    - Multiple dead enemies inside one tile
-    - If enemy in doorway, do not close door
-- Implement proper config file for things like full screen, window width and height
+- Implement proper config file for things like full screen, window width and height, player initial location + viewDir
 - Making fov higher seems to increase the height of blocks. Might need to add this into propr. constant
 
 ## Later Goals

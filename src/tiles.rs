@@ -33,7 +33,14 @@ pub struct WallSlice {
 }
 
 #[derive(Copy, Clone)]
+pub enum SpriteType {
+    OBJECT,
+    ENEMY
+}
+
+#[derive(Copy, Clone)]
 pub struct Sprite {
+    pub spriteType: SpriteType,
     pub textureHandle: TextureHandle,
     pub location: Point2
 }
