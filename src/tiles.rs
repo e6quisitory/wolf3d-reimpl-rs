@@ -14,11 +14,6 @@ pub enum Tile {
     NONE
 }
 
-pub enum SpriteHoldingTile {
-    OBJECT(ObjectTile),
-    EMPTY(EmptyTile)
-}
-
 #[derive(Copy, Clone)]
 pub struct TextureHandle {
     pub textureType: TextureType,
