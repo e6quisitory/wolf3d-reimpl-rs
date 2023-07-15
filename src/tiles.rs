@@ -1,3 +1,5 @@
+use core::panic;
+
 use sdl2::rect::Rect;
 use crate::{utils::{dda::RayCursor, conventions::TEXTURE_PITCH, vec2d::Point2}, multimedia::{LightTexture, TextureType}};
 
@@ -7,8 +9,14 @@ use crate::{utils::{dda::RayCursor, conventions::TEXTURE_PITCH, vec2d::Point2}, 
 pub enum Tile {
     WALL(Wall),
     DOOR(Door),
+    OBJECT(ObjectTile),
     EMPTY(EmptyTile),
     NONE
+}
+
+pub enum SpriteHoldingTile {
+    OBJECT(ObjectTile),
+    EMPTY(EmptyTile)
 }
 
 #[derive(Copy, Clone)]
@@ -32,7 +40,7 @@ pub struct WallSlice {
     pub dist: f64
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub enum SpriteType {
     OBJECT,
     ENEMY
@@ -192,6 +200,37 @@ impl Door {
         }
     }
 }
+
+/**************************************************************** ObjectTile ****************************************************************/
+
+const NO_PASSTHROUGH_ID_LIST: [i32; 21] = [4, 5, 6, 8, 10, 11, 13, 14, 15, 16, 19, 20, 21, 25, 38, 39, 40, 42, 48, 49, 50];
+
+#[derive(Clone)]
+pub struct ObjectTile {
+    pub sprite: Sprite,
+    passthrough: bool
+}
+
+impl ObjectTile {
+    pub fn New(sprite: Sprite) -> Self {
+        Self {
+            sprite,
+            passthrough: {
+                if sprite.spriteType == SpriteType::OBJECT && sprite.textureHandle.textureType == TextureType::OBJECT {
+                    let objectTextureID = sprite.textureHandle.ID;
+                    !NO_PASSTHROUGH_ID_LIST.contains(&objectTextureID)
+                } else {
+                    panic!()
+                }
+            }
+        }
+    }
+
+    pub fn PlayerTileHit(&self) -> bool {
+        return !self.passthrough;
+    }
+}
+
 
 /**************************************************************** EmptyTile ****************************************************************/
 

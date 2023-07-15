@@ -1,5 +1,5 @@
 use crate::multimedia::TextureType;
-use crate::tiles::{Wall, EmptyTile, Door, Tile, Sprite, TextureHandle};
+use crate::tiles::{Wall, EmptyTile, Door, Tile, Sprite, TextureHandle, ObjectTile};
 use crate::utils::vec2d::{iPoint2, Point2};
 use crate::utils::csv::ParseCSV;
 
@@ -75,10 +75,7 @@ impl Map {
                             location: Point2::New(column as f64 + 0.5, row as f64 + 0.5)
                         };
 
-                        let mut sprites: Vec<Sprite> = Vec::new();
-                            sprites.push(object);
-
-                        Tile::EMPTY(EmptyTile::New(Some(sprites)))
+                        Tile::OBJECT(ObjectTile::New(object))
                     },
                     _ => panic!()
                 };

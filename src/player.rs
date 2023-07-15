@@ -2,7 +2,7 @@ use std::f64::consts::PI;
 
 use crate::inputs_buffer::{InputsBuffer, lookCommand_t, moveCommand_t};
 use crate::map::Map;
-use crate::tiles::{Tile, DoorStatus};
+use crate::tiles::{Tile, DoorStatus, SpriteType};
 use crate::utils::dda::RayCursor;
 use crate::utils::ray::Ray;
 use crate::utils::vec2d::Vec2;
@@ -88,15 +88,31 @@ impl Player {
 
     fn MoveIfValid(&mut self, proposedLocation: Point2, map: &Map) {
         match map.GetTile(proposedLocation.into()) {
-            crate::tiles::Tile::EMPTY(_) => {
-                self.location = proposedLocation;
+            Tile::EMPTY(emptyTile) => {
+                let sprites = emptyTile.GetSprites();
+                if sprites.is_some() {
+                    for s in sprites.unwrap() {
+                        let aliveEnemyPresent = s.spriteType == SpriteType::ENEMY && s.textureHandle.ID != 45;
+                        if !aliveEnemyPresent {
+                            self.location = proposedLocation;
+                            break;
+                        }
+                    }
+                } else {
+                    self.location = proposedLocation;
+                }
             },
-            crate::tiles::Tile::DOOR(door) => {
+            Tile::DOOR(door) => {
                 if !door.PlayerTileHit() {
                     self.location = proposedLocation;
                 }
             },
-            crate::tiles::Tile::NONE => panic!(),
+            Tile::OBJECT(objectTile) => {
+                if !objectTile.PlayerTileHit() {
+                    self.location = proposedLocation;
+                }
+            },
+            Tile::NONE => panic!(),
             _ => {}
         }
     }

@@ -8,7 +8,7 @@ use crate::{
     map::Map,
     utils::{
         ray::Ray,
-        dda::RayCursor, vec2d::{Dot, Vec2, Point2}, conventions::TEXTURE_PITCH
+        dda::RayCursor, vec2d::{Dot, Vec2, Point2, iPoint2}, conventions::TEXTURE_PITCH
     }, tiles::{Tile, TextureHandle, Sprite, WallSlice}
 };
 
@@ -118,14 +118,14 @@ impl GameEngine {
         for x in 0..self.multimedia.windowParams.width {
             let currRay = Ray::New(self.player.location, self.player.viewDir.Rotate(self.multimedia.renderParams.castingRayAngles[x].0));
             let mut rayCursor = RayCursor::New(currRay, self.player.location);
-            let mut prevTile = self.map.GetTile(rayCursor.hitTile);
+            let mut prevTileCoord = rayCursor.hitTile;
             while self.map.WithinMap(rayCursor.hitTile) {
-                let prevTileWasDoor = if let Tile::DOOR(_) = prevTile { true } else { false };
+                let prevTileWasDoor = if let Tile::DOOR(_) = self.map.GetTile(prevTileCoord) { true } else { false };
                 rayCursor.GoToNextHit();
-                let currTile = self.map.GetTile(rayCursor.hitTile);
-                prevTile = currTile;
+                let currTileCoord = rayCursor.hitTile;
+                prevTileCoord = currTileCoord;                
 
-                match currTile {
+                match self.map.GetTile(currTileCoord) {
                     Tile::WALL(wall) => {
                         let mut wallSlice = wall.GetWallSlice(&mut rayCursor);
                         if prevTileWasDoor {
@@ -145,19 +145,8 @@ impl GameEngine {
                             continue;
                         }
                     },
-                    Tile::EMPTY(empty) => {
-                        let currTileX = rayCursor.hitTile.x() as usize;
-                        let currTileY = rayCursor.hitTile.y() as usize;
-                        if self.spriteTileHitMap[currTileX][currTileY] == false {
-                            let spritesArr = empty.GetSprites();
-                            if spritesArr.is_some() {
-                                for sprite in spritesArr.unwrap() {
-                                    self.spritesBuffer.push(*sprite);
-                                }
-                            }
-                            self.spriteTileHitMap[currTileX][currTileY] = true;
-                        }
-                        continue;
+                    Tile::OBJECT(_) | Tile::EMPTY(_) => {
+                        self.GrabSprites(currTileCoord)
                     },
                     Tile::NONE => panic!(),
                 };
@@ -240,6 +229,28 @@ impl GameEngine {
     fn ResetWallRenderHeights(&mut self) {
         for i in 0..self.wallRenderHeights.len() {
             self.wallRenderHeights[i] = 0;
+        }
+    }
+
+    fn GrabSprites(&mut self, tileCoord: iPoint2) {
+        let currTileX = tileCoord.x() as usize;
+        let currTileY = tileCoord.y() as usize;
+        if self.spriteTileHitMap[currTileX][currTileY] == false {
+            match self.map.GetTile(tileCoord) {
+                Tile::OBJECT(object) => {
+                    self.spritesBuffer.push(object.sprite)
+                },
+                Tile::EMPTY(emptyTile) => {
+                    let spritesArr = emptyTile.GetSprites();
+                    if spritesArr.is_some() {
+                        for sprite in spritesArr.unwrap() {
+                            self.spritesBuffer.push(*sprite);
+                        }
+                    }
+                }
+                _ => panic!()
+            }
+            self.spriteTileHitMap[currTileX][currTileY] = true;
         }
     }
 }
