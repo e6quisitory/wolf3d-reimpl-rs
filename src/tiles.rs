@@ -35,15 +35,8 @@ pub struct WallSlice {
     pub dist: f64
 }
 
-#[derive(Copy, Clone, PartialEq)]
-pub enum SpriteType {
-    OBJECT,
-    ENEMY
-}
-
 #[derive(Copy, Clone)]
 pub struct Sprite {
-    pub spriteType: SpriteType,
     pub textureHandle: TextureHandle,
     pub location: Point2
 }
@@ -211,7 +204,7 @@ impl ObjectTile {
         Self {
             sprite,
             passthrough: {
-                if sprite.spriteType == SpriteType::OBJECT && sprite.textureHandle.textureType == TextureType::OBJECT {
+                if sprite.textureHandle.textureType == TextureType::OBJECT {
                     let objectTextureID = sprite.textureHandle.ID;
                     !NO_PASSTHROUGH_ID_LIST.contains(&objectTextureID)
                 } else {
@@ -255,7 +248,21 @@ impl EmptyTile {
         }
     }
 
-    pub fn PlayerTileHit() -> bool {
-        return false;
+    pub fn PlayerTileHit(&self) -> bool {
+        if self.sprites.is_empty() {
+            return false;
+        } else {
+            for s in &self.sprites {
+                let isEnemy = !(s.textureHandle.textureType == TextureType::OBJECT || s.textureHandle.textureType == TextureType::WALL);
+                let isAliveEnemy = isEnemy && s.textureHandle.ID != 45;
+            
+                if isAliveEnemy {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+            return false;
+        }
     }
 }

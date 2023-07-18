@@ -1,3 +1,5 @@
+#![allow(non_snake_case)]
+
 mod utils;
 mod multimedia;
 mod inputs_buffer;

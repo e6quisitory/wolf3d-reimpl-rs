@@ -1,7 +1,20 @@
 use crate::multimedia::TextureType;
 use crate::tiles::{Wall, EmptyTile, Door, Tile, Sprite, TextureHandle, ObjectTile};
-use crate::utils::vec2d::{iPoint2, Point2};
+use crate::utils::vec2d::{iPoint2, Point2, Vec2};
 use crate::utils::csv::ParseCSV;
+
+pub enum EnemyType {
+    GUARD,
+    OFFICER,
+    SS,
+
+}
+
+pub struct Enemy {
+    location: Point2,
+    viewDir: Vec2,
+
+}
 
 pub struct Map {
     pub width: i32,
@@ -34,7 +47,6 @@ impl Map {
                     },
                     "GU" => {
                         let guard = Sprite {
-                            spriteType: crate::tiles::SpriteType::ENEMY,
                             textureHandle: TextureHandle::New(TextureType::GUARD, 1),
                             location: Point2::New(column as f64 + 0.5, row as f64 + 0.5)
                         };
@@ -46,7 +58,6 @@ impl Map {
                     },
                     "OF" => {
                         let officer = Sprite {
-                            spriteType: crate::tiles::SpriteType::ENEMY,
                             textureHandle: TextureHandle::New(TextureType::OFFICER, 1),
                             location: Point2::New(column as f64 + 0.5, row as f64 + 0.5)
                         };
@@ -58,7 +69,6 @@ impl Map {
                     },
                     "SS" => {
                         let SS = Sprite {
-                            spriteType: crate::tiles::SpriteType::ENEMY,
                             textureHandle: TextureHandle::New(TextureType::SS, 1),
                             location: Point2::New(column as f64 + 0.5, row as f64 + 0.5)
                         };
@@ -70,7 +80,6 @@ impl Map {
                     },
                     "O" => {
                         let object = Sprite {
-                            spriteType: crate::tiles::SpriteType::OBJECT,
                             textureHandle: TextureHandle::New(TextureType::OBJECT, tileTextureID.unwrap()),
                             location: Point2::New(column as f64 + 0.5, row as f64 + 0.5)
                         };
