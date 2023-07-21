@@ -1,19 +1,18 @@
 use crate::multimedia::TextureType;
 use crate::tiles::{Wall, EmptyTile, Door, Tile, Sprite, TextureHandle, ObjectTile};
-use crate::utils::vec2d::{iPoint2, Point2, Vec2};
+use crate::utils::vec2d::{iPoint2, Point2, Vec2, RandomUnitVec};
 use crate::utils::csv::ParseCSV;
 
 pub enum EnemyType {
     GUARD,
     OFFICER,
-    SS,
-
+    SS
 }
 
 pub struct Enemy {
-    location: Point2,
-    viewDir: Vec2,
-
+    pub enemyType: EnemyType,
+    pub location: Point2,
+    pub viewDir: Vec2,
 }
 
 pub struct Map {
@@ -24,7 +23,7 @@ pub struct Map {
 }
 
 impl Map {
-    pub fn LoadFromCSV(csvPath: &str) -> Self {
+    pub fn LoadFromCSV(csvPath: &str) -> (Self, Vec<Enemy>) {
         let tileTextureIDs = ParseCSV(csvPath).unwrap();
         let width = tileTextureIDs.ncols() as i32;
         let height = tileTextureIDs.nrows() as i32;
@@ -32,11 +31,15 @@ impl Map {
         
         let mut doorTileCoords: Vec<iPoint2> = Vec::new();
 
+        let mut enemies: Vec<Enemy> = Vec::new();
+
         for column in 0..width {
             for row in 0..height {
                 let tileCode = tileTextureIDs.get((row as usize, column as usize)).unwrap();
                 let tileTypeCode = tileCode.0.clone();
                 let tileTextureID = tileCode.1;
+
+                let spriteLocation = Point2::New(column as f64 + 0.5, row as f64 + 0.5);
 
                 tiles[column as usize][row as usize] = match tileTypeCode.as_str() {
                     "" => Tile::EMPTY(EmptyTile::New(None)),
@@ -48,19 +51,35 @@ impl Map {
                     "GU" => {
                         let guard = Sprite {
                             textureHandle: TextureHandle::New(TextureType::GUARD, 1),
-                            location: Point2::New(column as f64 + 0.5, row as f64 + 0.5)
+                            location: spriteLocation
                         };
 
                         let mut sprites: Vec<Sprite> = Vec::new();
                             sprites.push(guard);
+
+                        enemies.push(
+                            Enemy {
+                                enemyType: EnemyType::GUARD,
+                                location: spriteLocation,
+                                viewDir: RandomUnitVec()
+                            }
+                        );
 
                         Tile::EMPTY(EmptyTile::New(Some(sprites)))
                     },
                     "OF" => {
                         let officer = Sprite {
                             textureHandle: TextureHandle::New(TextureType::OFFICER, 1),
-                            location: Point2::New(column as f64 + 0.5, row as f64 + 0.5)
+                            location: spriteLocation
                         };
+
+                        enemies.push(
+                            Enemy {
+                                enemyType: EnemyType::OFFICER,
+                                location: spriteLocation,
+                                viewDir: RandomUnitVec()
+                            }
+                        );
 
                         let mut sprites: Vec<Sprite> = Vec::new();
                             sprites.push(officer);
@@ -70,8 +89,16 @@ impl Map {
                     "SS" => {
                         let SS = Sprite {
                             textureHandle: TextureHandle::New(TextureType::SS, 1),
-                            location: Point2::New(column as f64 + 0.5, row as f64 + 0.5)
+                            location: spriteLocation
                         };
+
+                        enemies.push(
+                            Enemy {
+                                enemyType: EnemyType::SS,
+                                location: spriteLocation,
+                                viewDir: RandomUnitVec()
+                            }
+                        );
 
                         let mut sprites: Vec<Sprite> = Vec::new();
                             sprites.push(SS);
@@ -81,7 +108,7 @@ impl Map {
                     "O" => {
                         let object = Sprite {
                             textureHandle: TextureHandle::New(TextureType::OBJECT, tileTextureID.unwrap()),
-                            location: Point2::New(column as f64 + 0.5, row as f64 + 0.5)
+                            location: spriteLocation
                         };
 
                         Tile::OBJECT(ObjectTile::New(object))
@@ -91,12 +118,15 @@ impl Map {
             }
         }
 
-        Self {
-            tiles,
-            width,
-            height,
-            doorTileCoords,
-        }
+        (
+            Self {
+                tiles,
+                width,
+                height,
+                doorTileCoords,
+            },
+            enemies
+        )
 
     }  
 

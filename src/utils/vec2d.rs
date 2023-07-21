@@ -1,4 +1,5 @@
 use std::ops::{Add, Sub, AddAssign, SubAssign, Index, IndexMut, Neg, Mul};
+use rand::Rng;
 
 /*
 =================================================
@@ -169,4 +170,9 @@ impl Mul<f64> for Vec2 {
 
 pub fn Dot(v1: Vec2D<f64>, v2: Vec2D<f64>) -> f64 {
     v1.x()*v2.x() + v1.y()*v2.y()
+}
+
+pub fn RandomUnitVec() -> Vec2 {
+    let mut rng = rand::thread_rng();
+    Vec2::New({if rng.gen::<bool>() { 1.0 } else { -1.0 }}*rng.gen::<f64>(), {if rng.gen::<bool>() { 1.0 } else { -1.0 }}*rng.gen::<f64>())
 }

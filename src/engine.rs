@@ -5,10 +5,10 @@ use crate::{
     multimedia::{Multimedia, LightTexture, TextureType},
     inputs_buffer::InputsBuffer,
     player::Player,
-    map::Map,
+    map::{Map, Enemy, EnemyType},
     utils::{
         ray::Ray,
-        dda::RayCursor, vec2d::{Dot, Vec2, Point2, iPoint2}, conventions::TEXTURE_PITCH
+        dda::RayCursor, vec2d::{Dot, Vec2, Point2, iPoint2, RandomUnitVec}, conventions::TEXTURE_PITCH
     }, tiles::{Tile, TextureHandle, Sprite, WallSlice}
 };
 
@@ -39,7 +39,10 @@ pub struct GameEngine {
     spritesBuffer: Vec<Sprite>,
     spritesRenderDataBuffer: Vec<SpriteRenderData>,
     wallRenderHeights: Vec<i32>,
-    spriteTileHitMap: Vec<Vec<bool>>
+    spriteTileHitMap: Vec<Vec<bool>>,
+
+    // Enemy related
+    enemies: Vec<Enemy>
 }
 
 impl GameEngine {
@@ -47,7 +50,7 @@ impl GameEngine {
         let multimedia = Multimedia::New(windowWidth, windowHeight, fov);
         let inputsBuffer = InputsBuffer{windowLock: true, ..Default::default()};
         let player = Player::New(Point2::New(1.5, 1.5));
-        let map = Map::LoadFromCSV(mapCSVPath);
+        let (map, enemies): (Map, Vec<Enemy>) = Map::LoadFromCSV(mapCSVPath);
         
         let refreshRatePropr = multimedia.displayParams.refreshRate as f64 / 60.0;
         let doorMoveIncr = 0.02/refreshRatePropr;
@@ -75,7 +78,9 @@ impl GameEngine {
             spritesRenderDataBuffer: Vec::new(),
             wallRenderHeights,
 
-            spriteTileHitMap
+            spriteTileHitMap,
+
+            enemies
         }
     }
 
@@ -89,6 +94,7 @@ impl GameEngine {
 
     fn Update(&mut self) {
         self.inputsBuffer.Update(&mut self.multimedia.sdlContexts.sdlContext, &mut self.multimedia.sdlEventPump);
+        self.UpdateEnemies();
         self.player.Update(&self.inputsBuffer, &mut self.map, self.playerMoveIncr, self.playerSwivelIncr);
         self.map.UpdateDoors(self.doorMoveIncr, self.doorTimerIncr, self.player.location);
     }
@@ -236,7 +242,7 @@ impl GameEngine {
         let currTileX = tileCoord.x() as usize;
         let currTileY = tileCoord.y() as usize;
         if self.spriteTileHitMap[currTileX][currTileY] == false {
-            match self.map.GetTile(tileCoord) {
+            match self.map.GetMutTile(tileCoord) {
                 Tile::OBJECT(object) => {
                     self.spritesBuffer.push(object.sprite)
                 },
@@ -247,10 +253,60 @@ impl GameEngine {
                             self.spritesBuffer.push(*sprite);
                         }
                     }
+                    emptyTile.sprites.clear();
                 }
                 _ => panic!()
             }
             self.spriteTileHitMap[currTileX][currTileY] = true;
+        }
+    }
+
+    fn UpdateEnemies(&mut self) {
+        for e in &mut self.enemies {
+            // Move enemy if possible
+            let proposedLocation = e.location + e.viewDir*0.01;
+            let proposedTileCoord = proposedLocation.into();
+            if self.map.WithinMap(proposedTileCoord) {
+                if let Tile::EMPTY(_) = self.map.GetTile(proposedTileCoord) {
+                    let playerTileCoord: iPoint2 = self.player.location.into();
+                    if proposedTileCoord != playerTileCoord {
+                        e.location = proposedLocation;
+                    } else {
+                        e.viewDir = RandomUnitVec();
+                    }
+                } else {
+                    e.viewDir = RandomUnitVec();
+                }
+            } else {
+                e.viewDir = RandomUnitVec();
+            }
+
+            // Get enemy location and insert sprite into appropriate tile
+            let tileCoord: iPoint2 = e.location.into();
+            let sprite = match e.enemyType {
+                EnemyType::GUARD => {
+                    Sprite {
+                        textureHandle: TextureHandle { textureType: TextureType::GUARD, ID: 1 },
+                        location: e.location
+                    }
+                },
+                EnemyType::OFFICER => {
+                    Sprite {
+                        textureHandle: TextureHandle { textureType: TextureType::OFFICER, ID: 1 },
+                        location: e.location
+                    }
+                },
+                EnemyType::SS => {
+                    Sprite {
+                        textureHandle: TextureHandle { textureType: TextureType::SS, ID: 1 },
+                        location: e.location
+                    }
+                }
+            };
+
+            if let Tile::EMPTY(emptyTile) = self.map.GetMutTile(tileCoord) {
+                emptyTile.sprites.push(sprite);
+            }
         }
     }
 }

@@ -224,7 +224,7 @@ impl ObjectTile {
 
 #[derive(Clone)]
 pub struct EmptyTile {
-    sprites: Vec<Sprite>
+    pub sprites: Vec<Sprite>
 }
 
 impl EmptyTile {

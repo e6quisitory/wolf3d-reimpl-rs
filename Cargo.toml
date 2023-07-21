@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 csv = "1.2.2"
 ndarray = "0.15.6"
+rand = "0.8.5"
 
 [dependencies.sdl2]
 version = "0.35.2"
