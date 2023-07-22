@@ -253,7 +253,6 @@ impl GameEngine {
                             self.spritesBuffer.push(*sprite);
                         }
                     }
-                    emptyTile.sprites.clear();
                 }
                 _ => panic!()
             }
@@ -262,8 +261,15 @@ impl GameEngine {
     }
 
     fn UpdateEnemies(&mut self) {
+        // Wipe all enemy sprites from tiles
+        for e in &self.enemies {
+            if let Tile::EMPTY(emptyTile) = self.map.GetMutTile(e.tile) {
+                emptyTile.sprites.clear();
+            }
+        }
+
+        // Move enemies if possible
         for e in &mut self.enemies {
-            // Move enemy if possible
             let proposedLocation = e.location + e.viewDir*0.01;
             let proposedTileCoord = proposedLocation.into();
             if self.map.WithinMap(proposedTileCoord) {
@@ -271,6 +277,7 @@ impl GameEngine {
                     let playerTileCoord: iPoint2 = self.player.location.into();
                     if proposedTileCoord != playerTileCoord {
                         e.location = proposedLocation;
+                        e.tile = proposedLocation.into();
                     } else {
                         e.viewDir = RandomUnitVec();
                     }
@@ -281,7 +288,7 @@ impl GameEngine {
                 e.viewDir = RandomUnitVec();
             }
 
-            // Get enemy location and insert sprite into appropriate tile
+            // Calculate and inject sprites into appropriate tiles
             let tileCoord: iPoint2 = e.location.into();
             let sprite = e.CalculateSprite(self.player.viewDir);
 

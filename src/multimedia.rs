@@ -149,6 +149,7 @@ impl Assets {
         let guard_TS   = TextureSheet::New(sdlTextureCreator,  "assets/guard.bmp", 8, 51, true);
         let officer_TS = TextureSheet::New(sdlTextureCreator,  "assets/officer.bmp", 8, 51, true);
         let SS_TS      = TextureSheet::New(sdlTextureCreator,  "assets/SS.bmp", 8, 51, true);
+        let weapons_TS = TextureSheet::New(sdlTextureCreator,  "assets/weapons.bmp", 5, 20, true);
 
         let mut textureSheets: HashMap<TextureType, TextureSheet> = HashMap::new();
             textureSheets.insert(TextureType::WALL, wall_TS);
@@ -156,6 +157,7 @@ impl Assets {
             textureSheets.insert(TextureType::GUARD, guard_TS);
             textureSheets.insert(TextureType::OFFICER, officer_TS);
             textureSheets.insert(TextureType::SS, SS_TS);
+            textureSheets.insert(TextureType::WEAPON, weapons_TS);
 
         Self {
             textureSheets
@@ -174,7 +176,8 @@ pub enum TextureType {
     OBJECT,
     GUARD,
     OFFICER,
-    SS
+    SS,
+    WEAPON
 }
 
 struct TextureSheet {
