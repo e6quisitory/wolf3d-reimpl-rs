@@ -5,7 +5,7 @@ use crate::{
     multimedia::{Multimedia, LightTexture, TextureType},
     inputs_buffer::InputsBuffer,
     player::Player,
-    map::{Map, Enemy, EnemyType},
+    map::{Map, Enemy},
     utils::{
         ray::Ray,
         dda::RayCursor, vec2d::{Dot, Vec2, Point2, iPoint2, RandomUnitVec}, conventions::TEXTURE_PITCH
@@ -283,26 +283,7 @@ impl GameEngine {
 
             // Get enemy location and insert sprite into appropriate tile
             let tileCoord: iPoint2 = e.location.into();
-            let sprite = match e.enemyType {
-                EnemyType::GUARD => {
-                    Sprite {
-                        textureHandle: TextureHandle { textureType: TextureType::GUARD, ID: 1 },
-                        location: e.location
-                    }
-                },
-                EnemyType::OFFICER => {
-                    Sprite {
-                        textureHandle: TextureHandle { textureType: TextureType::OFFICER, ID: 1 },
-                        location: e.location
-                    }
-                },
-                EnemyType::SS => {
-                    Sprite {
-                        textureHandle: TextureHandle { textureType: TextureType::SS, ID: 1 },
-                        location: e.location
-                    }
-                }
-            };
+            let sprite = e.CalculateSprite(self.player.viewDir);
 
             if let Tile::EMPTY(emptyTile) = self.map.GetMutTile(tileCoord) {
                 emptyTile.sprites.push(sprite);

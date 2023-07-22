@@ -1,6 +1,8 @@
+use std::f64::consts::PI;
+
 use crate::multimedia::TextureType;
 use crate::tiles::{Wall, EmptyTile, Door, Tile, Sprite, TextureHandle, ObjectTile};
-use crate::utils::vec2d::{iPoint2, Point2, Vec2, RandomUnitVec};
+use crate::utils::vec2d::{iPoint2, Point2, Vec2, RandomUnitVec, Dot};
 use crate::utils::csv::ParseCSV;
 
 pub enum EnemyType {
@@ -12,7 +14,62 @@ pub enum EnemyType {
 pub struct Enemy {
     pub enemyType: EnemyType,
     pub location: Point2,
+    pub tile: iPoint2,
     pub viewDir: Vec2,
+}
+
+impl Enemy {
+    pub fn CalculateSprite(&self, playerViewDir: Vec2) -> Sprite {
+        let textureType = match self.enemyType {
+            EnemyType::GUARD => TextureType::GUARD,
+            EnemyType::OFFICER => TextureType::OFFICER,
+            EnemyType::SS => TextureType::SS
+        };
+
+        let enemyViewDir = self.viewDir;
+        let enemyEastDir = self.viewDir.Rotate(-PI/2.0);
+        
+        let playerViewDotEnemyView = Dot(playerViewDir, enemyViewDir);
+        let playerViewDotEnemyEast = Dot(playerViewDir, enemyEastDir);
+
+        let angle = {
+            if playerViewDotEnemyView >= 0.0 {
+                playerViewDotEnemyEast.acos()
+            } else {
+                2.0*PI - playerViewDotEnemyEast.acos()
+            }
+        };
+
+        let textureID = {
+            if (angle >= 15.0*PI/8.0 && angle <= 2.0*PI) || (angle >= 0.0 && angle < PI/8.0) {
+                3
+            } else if angle >= PI/8.0 && angle < 3.0*PI/8.0 {
+                4
+            } else if angle >= 3.0*PI/8.0 && angle < 5.0*PI/8.0 {
+                5
+            } else if angle >= 5.0*PI/8.0 && angle < 7.0*PI/8.0 {
+                6
+            } else if angle >= 7.0*PI/8.0 && angle < 9.0*PI/8.0 {
+                7
+            } else if angle >= 9.0*PI/8.0 && angle < 11.0*PI/8.0 {
+                8
+            } else if angle >= 11.0*PI/8.0 && angle < 13.0*PI/8.0 {
+                1
+            } else {
+                2
+            }
+        };
+
+        let textureHandle = TextureHandle {
+            textureType,
+            ID: textureID
+        };
+
+        Sprite {
+            textureHandle,
+            location: self.location
+        }
+    }
 }
 
 pub struct Map {
@@ -40,6 +97,7 @@ impl Map {
                 let tileTextureID = tileCode.1;
 
                 let spriteLocation = Point2::New(column as f64 + 0.5, row as f64 + 0.5);
+                let spriteTile: iPoint2 = spriteLocation.into();
 
                 tiles[column as usize][row as usize] = match tileTypeCode.as_str() {
                     "" => Tile::EMPTY(EmptyTile::New(None)),
@@ -61,6 +119,7 @@ impl Map {
                             Enemy {
                                 enemyType: EnemyType::GUARD,
                                 location: spriteLocation,
+                                tile: spriteTile,
                                 viewDir: RandomUnitVec()
                             }
                         );
@@ -77,6 +136,7 @@ impl Map {
                             Enemy {
                                 enemyType: EnemyType::OFFICER,
                                 location: spriteLocation,
+                                tile: spriteTile,
                                 viewDir: RandomUnitVec()
                             }
                         );
@@ -96,6 +156,7 @@ impl Map {
                             Enemy {
                                 enemyType: EnemyType::SS,
                                 location: spriteLocation,
+                                tile: spriteTile,
                                 viewDir: RandomUnitVec()
                             }
                         );

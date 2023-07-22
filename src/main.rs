@@ -11,6 +11,6 @@ mod engine;
 use engine::GameEngine;
 
 fn main() {
-    let mut gameEngine = GameEngine::Init(960, 540, 90.0, "assets/map.csv");
+    let mut gameEngine = GameEngine::Init(1289, 720, 90.0, "assets/map.csv");
     gameEngine.GameLoop();
 }
