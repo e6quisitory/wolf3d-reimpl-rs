@@ -268,8 +268,23 @@ impl GameEngine {
             }
         }
 
-        // Move enemies if possible
+        // For each enemy...
         for e in &mut self.enemies {
+            // Decrement timer
+            e.walkTimer -= 0.07;
+            if e.walkTimer <= 0.0 {
+                // Increment walking sprite num
+                let nextWalkingSpriteNum = e.walkSpriteNum + 1;
+                if nextWalkingSpriteNum > 4 {
+                    e.walkSpriteNum = 1;
+                } else {
+                    e.walkSpriteNum = nextWalkingSpriteNum;
+                }
+                // Reset timer
+                e.walkTimer = 1.0;
+            }
+
+            // Move enemies if possible
             let proposedLocation = e.location + e.viewDir*0.01;
             let proposedTileCoord = proposedLocation.into();
             if self.map.WithinMap(proposedTileCoord) {

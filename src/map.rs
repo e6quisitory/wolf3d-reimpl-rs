@@ -16,6 +16,9 @@ pub struct Enemy {
     pub location: Point2,
     pub tile: iPoint2,
     pub viewDir: Vec2,
+
+    pub walkTimer: f64,
+    pub walkSpriteNum: i32
 }
 
 impl Enemy {
@@ -41,23 +44,27 @@ impl Enemy {
         };
 
         let textureID = {
-            if (angle >= 15.0*PI/8.0 && angle <= 2.0*PI) || (angle >= 0.0 && angle < PI/8.0) {
-                3
-            } else if angle >= PI/8.0 && angle < 3.0*PI/8.0 {
-                4
-            } else if angle >= 3.0*PI/8.0 && angle < 5.0*PI/8.0 {
-                5
-            } else if angle >= 5.0*PI/8.0 && angle < 7.0*PI/8.0 {
-                6
-            } else if angle >= 7.0*PI/8.0 && angle < 9.0*PI/8.0 {
-                7
-            } else if angle >= 9.0*PI/8.0 && angle < 11.0*PI/8.0 {
-                8
-            } else if angle >= 11.0*PI/8.0 && angle < 13.0*PI/8.0 {
-                1
-            } else {
-                2
-            }
+            self.CalculateWalkingSpriteID(
+                {
+                    if (angle >= 15.0*PI/8.0 && angle <= 2.0*PI) || (angle >= 0.0 && angle < PI/8.0) {
+                        3
+                    } else if angle >= PI/8.0 && angle < 3.0*PI/8.0 {
+                        4
+                    } else if angle >= 3.0*PI/8.0 && angle < 5.0*PI/8.0 {
+                        5
+                    } else if angle >= 5.0*PI/8.0 && angle < 7.0*PI/8.0 {
+                        6
+                    } else if angle >= 7.0*PI/8.0 && angle < 9.0*PI/8.0 {
+                        7
+                    } else if angle >= 9.0*PI/8.0 && angle < 11.0*PI/8.0 {
+                        8
+                    } else if angle >= 11.0*PI/8.0 && angle < 13.0*PI/8.0 {
+                        1
+                    } else {
+                        2
+                    }
+                }
+            )
         };
 
         let textureHandle = TextureHandle {
@@ -69,6 +76,10 @@ impl Enemy {
             textureHandle,
             location: self.location
         }
+    }
+
+    fn CalculateWalkingSpriteID(&self, columnNum: i32) -> i32 {
+        columnNum + 8*self.walkSpriteNum
     }
 }
 
@@ -120,7 +131,9 @@ impl Map {
                                 enemyType: EnemyType::GUARD,
                                 location: spriteLocation,
                                 tile: spriteTile,
-                                viewDir: RandomUnitVec()
+                                viewDir: RandomUnitVec(),
+                                walkTimer: 1.0,
+                                walkSpriteNum: 1
                             }
                         );
 
@@ -137,7 +150,10 @@ impl Map {
                                 enemyType: EnemyType::OFFICER,
                                 location: spriteLocation,
                                 tile: spriteTile,
-                                viewDir: RandomUnitVec()
+                                viewDir: RandomUnitVec(),
+                                walkTimer: 1.0,
+                                walkSpriteNum: 1
+
                             }
                         );
 
@@ -157,7 +173,10 @@ impl Map {
                                 enemyType: EnemyType::SS,
                                 location: spriteLocation,
                                 tile: spriteTile,
-                                viewDir: RandomUnitVec()
+                                viewDir: RandomUnitVec(),
+                                walkTimer: 1.0,
+                                walkSpriteNum: 1
+
                             }
                         );
 
