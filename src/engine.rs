@@ -243,14 +243,22 @@ impl GameEngine {
         let currTileY = tileCoord.y() as usize;
         if self.spriteTileHitMap[currTileX][currTileY] == false {
             match self.map.GetMutTile(tileCoord) {
-                Tile::OBJECT(object) => {
-                    self.spritesBuffer.push(object.sprite)
+                Tile::OBJECT(objectTile) => {
+                    self.spritesBuffer.push(objectTile.objectSprite);
+                    if objectTile.IsEnemyHolder() {
+                        let spritesArr = objectTile.GetSprites();
+                        if spritesArr.is_some() {
+                            for s in spritesArr.unwrap() {
+                                self.spritesBuffer.push(*s);
+                            }
+                        }
+                    }
                 },
                 Tile::EMPTY(emptyTile) => {
                     let spritesArr = emptyTile.GetSprites();
                     if spritesArr.is_some() {
-                        for sprite in spritesArr.unwrap() {
-                            self.spritesBuffer.push(*sprite);
+                        for s in spritesArr.unwrap() {
+                            self.spritesBuffer.push(*s);
                         }
                     }
                 }
@@ -263,15 +271,22 @@ impl GameEngine {
     fn UpdateEnemies(&mut self) {
         // Wipe all enemy sprites from tiles
         for e in &self.enemies {
-            if let Tile::EMPTY(emptyTile) = self.map.GetMutTile(e.tile) {
-                emptyTile.sprites.clear();
+            match self.map.GetMutTile(e.tile) {
+                Tile::OBJECT(object) => {
+                    object.enemySprites.clear();
+                },
+                Tile::EMPTY(emptyTile) => {
+                    emptyTile.enemySprites.clear();
+                },
+                Tile::NONE => panic!(),
+                _ => {}
             }
         }
 
         // For each enemy...
         for e in &mut self.enemies {
             // Decrement timer
-            e.walkTimer -= 0.07;
+            e.walkTimer -= 0.1;
             if e.walkTimer <= 0.0 {
                 // Increment walking sprite num
                 let nextWalkingSpriteNum = e.walkSpriteNum + 1;
@@ -284,21 +299,12 @@ impl GameEngine {
                 e.walkTimer = 1.0;
             }
 
-            // Move enemies if possible
+            // Move enemies or change direction
             let proposedLocation = e.location + e.viewDir*0.01;
-            let proposedTileCoord = proposedLocation.into();
-            if self.map.WithinMap(proposedTileCoord) {
-                if let Tile::EMPTY(_) = self.map.GetTile(proposedTileCoord) {
-                    let playerTileCoord: iPoint2 = self.player.location.into();
-                    if proposedTileCoord != playerTileCoord {
-                        e.location = proposedLocation;
-                        e.tile = proposedLocation.into();
-                    } else {
-                        e.viewDir = RandomUnitVec();
-                    }
-                } else {
-                    e.viewDir = RandomUnitVec();
-                }
+            let proposedTileCoord = iPoint2::from(proposedLocation);
+            if self.map.ValidEnemyLocation(proposedLocation, self.player.location) {
+                e.location = proposedLocation;
+                e.tile = proposedTileCoord;
             } else {
                 e.viewDir = RandomUnitVec();
             }
@@ -306,9 +312,14 @@ impl GameEngine {
             // Calculate and inject sprites into appropriate tiles
             let tileCoord: iPoint2 = e.location.into();
             let sprite = e.CalculateSprite(self.player.viewDir);
-
-            if let Tile::EMPTY(emptyTile) = self.map.GetMutTile(tileCoord) {
-                emptyTile.sprites.push(sprite);
+            match self.map.GetMutTile(tileCoord) {
+                Tile::OBJECT(object) => {
+                    object.enemySprites.push(sprite);
+                },
+                Tile::EMPTY(emptyTile) => {
+                    emptyTile.enemySprites.push(sprite);
+                },
+                _ => {}
             }
         }
     }

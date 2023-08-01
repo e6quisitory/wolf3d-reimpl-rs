@@ -195,14 +195,16 @@ const NO_PASSTHROUGH_ID_LIST: [i32; 21] = [4, 5, 6, 8, 10, 11, 13, 14, 15, 16, 1
 
 #[derive(Clone)]
 pub struct ObjectTile {
-    pub sprite: Sprite,
+    pub objectSprite: Sprite,
+    pub enemySprites: Vec<Sprite>,
     passthrough: bool
 }
 
 impl ObjectTile {
     pub fn New(sprite: Sprite) -> Self {
         Self {
-            sprite,
+            objectSprite: sprite,
+            enemySprites: Vec::new(),
             passthrough: {
                 if sprite.textureHandle.textureType == TextureType::OBJECT {
                     let objectTextureID = sprite.textureHandle.ID;
@@ -217,6 +219,22 @@ impl ObjectTile {
     pub fn PlayerTileHit(&self) -> bool {
         return !self.passthrough;
     }
+
+    pub fn IsEnemyHolder(&self) -> bool {
+        return self.passthrough;
+    }
+
+    pub fn GetSprites(&self) -> Option<&Vec<Sprite>> {
+        if self.passthrough {
+            if self.enemySprites.is_empty() {
+                None
+            } else {
+                Some(&self.enemySprites)
+            }
+        } else {
+            panic!();
+        }
+    }
 }
 
 
@@ -224,35 +242,35 @@ impl ObjectTile {
 
 #[derive(Clone)]
 pub struct EmptyTile {
-    pub sprites: Vec<Sprite>
+    pub enemySprites: Vec<Sprite>
 }
 
 impl EmptyTile {
     pub fn New(sprites: Option<Vec<Sprite>>) -> Self {        
         if sprites.is_some() {
             Self {
-                sprites: sprites.unwrap()
+                enemySprites: sprites.unwrap()
             }
         } else {
             Self {
-                sprites: Vec::new()
+                enemySprites: Vec::new()
             }
         }
     }
 
     pub fn GetSprites(&self) -> Option<&Vec<Sprite>> {
-        if self.sprites.is_empty() {
+        if self.enemySprites.is_empty() {
             None
         } else {
-            Some(&self.sprites)
+            Some(&self.enemySprites)
         }
     }
 
     pub fn PlayerTileHit(&self) -> bool {
-        if self.sprites.is_empty() {
+        if self.enemySprites.is_empty() {
             return false;
         } else {
-            for s in &self.sprites {
+            for s in &self.enemySprites {
                 let isEnemy = !(s.textureHandle.textureType == TextureType::OBJECT || s.textureHandle.textureType == TextureType::WALL);
                 let isAliveEnemy = isEnemy && s.textureHandle.ID != 45;
             

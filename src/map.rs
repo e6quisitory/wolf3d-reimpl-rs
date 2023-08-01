@@ -222,6 +222,31 @@ impl Map {
         (tileCoord.x() > 0 && tileCoord.x() < self.width-1) && (tileCoord.y() > 0 && tileCoord.y() < self.height-1)
     }
 
+    pub fn ValidEnemyLocation(&self, proposedLocation: Point2, playerLocation: Point2) -> bool {
+        let proposedTileCoord = iPoint2::from(proposedLocation);
+        let playerTileCoord = iPoint2::from(playerLocation);
+
+        let tileWithinMap = self.WithinMap(proposedTileCoord);
+        let notPlayerTile = proposedTileCoord != playerTileCoord;
+
+        if tileWithinMap && notPlayerTile {
+            match self.GetTile(proposedTileCoord) {
+                Tile::EMPTY(_) => {
+                    return true;
+                },
+                Tile::OBJECT(object) => {
+                    return !object.PlayerTileHit();
+                },
+                Tile::NONE => panic!(),
+                _ => {
+                    return false;
+                }
+            }
+        } else {
+            return false;
+        }
+    }
+
     pub fn UpdateDoors(&mut self, moveIncr: f64, timerIncr: f64, playerLoc: Point2) {
         for doorIndex in 0..self.doorTileCoords.len() {
             let doorCoord = self.doorTileCoords[doorIndex];
