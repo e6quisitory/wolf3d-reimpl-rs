@@ -13,12 +13,13 @@ I've previously [implemented](https://github.com/e6quisitory/wolf3d-clone) a Wol
 - [x] Doors
 - [x] Mouse to look around
 - [x] Sprites (objects & enemies)
+- [x] Moving enemies
 
 ### Remaining
 - [ ] Minimap
 
 ## Current Engine Demo
-https://github.com/e6quisitory/wolf3d-clone-rs/assets/25702188/9ba6f8e1-b113-4c07-8c96-c80e9bdc7c87
+https://github.com/e6quisitory/wolf3d-clone-rs/assets/25702188/af591bf3-c4cc-4f11-87ce-a71f3f310d98
 
 ## Build Instructions
 Assuming you have `rustc` and `cargo` installed (through `rustup`, most likely), clone this repo, then, from its root, run the following command.
@@ -31,8 +32,6 @@ cargo run --release
 - Making fov higher seems to increase the height of blocks. Might need to add this into propr. constant
 
 ## Later Goals
-- [ ] Get enemies moving
-- [ ] Enemy animations
 - [ ] Weapons
 - [ ] Enemy AI
 - [ ] Port to [WebAssembly](https://rustwasm.github.io/docs/book)
