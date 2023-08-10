@@ -22,7 +22,7 @@ I've previously [implemented](https://github.com/e6quisitory/wolf3d-clone) a Wol
 https://github.com/e6quisitory/wolf3d-clone-rs/assets/25702188/af591bf3-c4cc-4f11-87ce-a71f3f310d98
 
 ## Build Instructions
-Assuming you have `rustc` and `cargo` installed (through `rustup`, most likely), clone this repo, then, from its root, run the following command.
+Assuming you have `rustc` and `cargo` installed (through `rustup`, most likely), as well as [SDL2](https://github.com/libsdl-org/SDL/releases), clone this repo, then, from its root, run the following command.
 ```
 cargo run --release
 ```
