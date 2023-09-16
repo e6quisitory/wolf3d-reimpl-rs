@@ -4,6 +4,13 @@
 
 I've previously [implemented](https://github.com/e6quisitory/wolf3d-clone) a Wolfenstein 3D renderer in C++. Now, I've decided it's time to hop on the Rust bandwagon. So, as a first project, to teach myself the language, I'm porting over the project to Rust.
 
+### Remaining
+- [ ] Minimap
+- [ ] Weapons
+- [ ] Enemy AI
+- [ ] Port to [WebAssembly](https://rustwasm.github.io/docs/book)
+- [ ] Networked multiplayer _(aspirational)_
+
 ### Completed
 - [x] Raycasting
 - [x] Texture mapping
@@ -15,9 +22,6 @@ I've previously [implemented](https://github.com/e6quisitory/wolf3d-clone) a Wol
 - [x] Sprites (objects & enemies)
 - [x] Moving enemies
 
-### Remaining
-- [ ] Minimap
-
 ## Current Engine Demo
 https://github.com/e6quisitory/wolf3d-clone-rs/assets/25702188/af591bf3-c4cc-4f11-87ce-a71f3f310d98
 
@@ -26,15 +30,11 @@ Assuming you have `rustc` and `cargo` installed (through `rustup`, most likely),
 ```
 cargo run --release
 ```
-## Issues/Dev Notes
-- Things that don’t need to be pub shouldn’t be
-- Implement proper config file for things like full screen, window width and height, player initial location + viewDir
-- Making fov higher seems to increase the height of blocks. Might need to add this into propr. constant
-
-## Later Goals
-- [ ] Weapons
-- [ ] Enemy AI
-- [ ] Port to [WebAssembly](https://rustwasm.github.io/docs/book)
+## Controls
+- `W` `A` `S` `D` to move around
+- Mouse (or trackpad) to look around
+- `~` to unlock/relock mouse from game window
+- `Esc` to quit game
 
 ## Credits
-All wall and sprite textures + the logo at the top of this README are from the official Wolfenstein 3D artwork that shipped in the game back in 1992. I found them [here](https://www.spriters-resource.com/pc_computer/wolfenstein3d/).
+All wall and sprite textures + the logo at the top of this README are from the official Wolfenstein 3D artwork that shipped in the game back in 1992 by id Software. I found them [here](https://www.spriters-resource.com/pc_computer/wolfenstein3d/).
