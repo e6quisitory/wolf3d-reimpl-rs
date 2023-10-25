@@ -11,6 +11,7 @@ use crate::{
         dda::RayCursor, vec2d::{Dot, Vec2, Point2, iPoint2, RandomUnitVec}, conventions::TEXTURE_PITCH
     }, tiles::{Tile, TextureHandle, Sprite, WallSlice}
 };
+use crate::utils::vec2d::iVec2;
 
 struct SpriteRenderData {
     vecToSprite: Vec2,
@@ -40,6 +41,8 @@ pub struct GameEngine {
     spritesRenderDataBuffer: Vec<SpriteRenderData>,
     wallRenderHeights: Vec<i32>,
     spriteTileHitMap: Vec<Vec<bool>>,
+    weaponRenderTopLeft: iVec2,
+    weaponRenderPitch: i32,
 
     // Enemy related
     enemies: Vec<Enemy>
@@ -62,6 +65,10 @@ impl GameEngine {
 
         let spriteTileHitMap: Vec<Vec<bool>> = vec![vec![false; map.height as usize]; map.width as usize];
 
+        let weaponRenderPitch = (windowWidth/2) as i32;
+        let weaponRenderX = (windowWidth/2) - (weaponRenderPitch/2) as usize;
+        let weaponRenderY = windowHeight - weaponRenderPitch as usize;
+
         Self {
             multimedia,
             inputsBuffer,
@@ -79,6 +86,9 @@ impl GameEngine {
             wallRenderHeights,
 
             spriteTileHitMap,
+
+            weaponRenderTopLeft: iVec2::New(weaponRenderX as i32, weaponRenderY as i32),
+            weaponRenderPitch,
 
             enemies
         }
@@ -105,6 +115,7 @@ impl GameEngine {
         self.RenderIntoBuffers();
         self.DrawWallsFromBuffer();
         self.DrawSpritesFromBuffer();
+        self.DrawWeapon();
         self.multimedia.sdlCanvas.present();
     }
 
@@ -222,6 +233,14 @@ impl GameEngine {
                 }
             }
         }
+    }
+
+    fn DrawWeapon(&mut self) {
+        let screenRect = Rect::new(self.weaponRenderTopLeft.x(), self.weaponRenderTopLeft.y(), self.weaponRenderPitch as u32, self.weaponRenderPitch as u32);
+        let textureHandle = TextureHandle::New(TextureType::WEAPON, 6);
+        let texture = self.multimedia.assets.GetTexture(textureHandle);
+        let textureRect = Rect::new(0, 0, TEXTURE_PITCH, TEXTURE_PITCH);
+        let _ = self.multimedia.sdlCanvas.copy(texture, textureRect, screenRect);
     }
 
     fn ResetSpriteTileHitMap(&mut self) {
