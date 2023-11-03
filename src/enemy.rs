@@ -85,25 +85,28 @@ impl Enemy {
 
         let currClipIndex = {
             if (angle >= 15.0*PI/8.0 && angle <= 2.0*PI) || (angle >= 0.0 && angle < PI/8.0) {
-                3
-            } else if angle >= PI/8.0 && angle < 3.0*PI/8.0 {
-                4
-            } else if angle >= 3.0*PI/8.0 && angle < 5.0*PI/8.0 {
-                5
-            } else if angle >= 5.0*PI/8.0 && angle < 7.0*PI/8.0 {
-                6
-            } else if angle >= 7.0*PI/8.0 && angle < 9.0*PI/8.0 {
-                7
-            } else if angle >= 9.0*PI/8.0 && angle < 11.0*PI/8.0 {
-                8
-            } else if angle >= 11.0*PI/8.0 && angle < 13.0*PI/8.0 {
-                1
-            } else {
                 2
+            } else if angle >= PI/8.0 && angle < 3.0*PI/8.0 {
+                3
+            } else if angle >= 3.0*PI/8.0 && angle < 5.0*PI/8.0 {
+                4
+            } else if angle >= 5.0*PI/8.0 && angle < 7.0*PI/8.0 {
+                5
+            } else if angle >= 7.0*PI/8.0 && angle < 9.0*PI/8.0 {
+                6
+            } else if angle >= 9.0*PI/8.0 && angle < 11.0*PI/8.0 {
+                7
+            } else if angle >= 11.0*PI/8.0 && angle < 13.0*PI/8.0 {
+                0
+            } else {
+                1
             }
         };
 
-        let textureHandle = self.AM_enemySprites.GetCurrEnemyTexture(currClipIndex-1);
+        if currClipIndex != self.AM_enemySprites.currClipIndex {
+            self.AM_enemySprites.SwitchClipIndexWithTimeCopy(currClipIndex as usize);
+        }
+        let textureHandle = self.AM_enemySprites.GetCurrTexture();
 
         Sprite {
             textureHandle,

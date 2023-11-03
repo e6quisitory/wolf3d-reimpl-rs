@@ -33,8 +33,9 @@ impl Player {
                 AnimationReel::New(vec![
                     TextureHandle::New(TextureType::WEAPON, 7),
                     TextureHandle::New(TextureType::WEAPON, 8),
+                    TextureHandle::New(TextureType::WEAPON, 9),
                     TextureHandle::New(TextureType::WEAPON, 9)
-                ], 0.15, 0.02, Some(0))
+                ], 0.15, 0.05, Some(0))
             )
         ], 0);
 

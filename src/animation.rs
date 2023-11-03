@@ -103,23 +103,20 @@ impl AnimationMagazine {
         }
     }
 
-    pub fn GetCurrEnemyTexture(&self, currClipIndex: usize) -> TextureHandle {
-        let currTextureIndex = match &self.clips[self.currClipIndex as usize] {
-            AnimationClip::STATIC(_) => {
-                panic!()
-            }
-            AnimationClip::REEL(reel) => {
-                reel.currTextureIndex
-            }
-        };
-
-        match &self.clips[currClipIndex] {
-            AnimationClip::STATIC(_) => {
-                panic!()
-            }
-            AnimationClip::REEL(reel) => {
-                reel.textures[currTextureIndex as usize]
-            }
+    pub fn SwitchClipIndexWithTimeCopy(&mut self, clipIndexToSwitchTo: usize) {
+        let backupTextureIndex;
+        let backupTimer;
+        if let AnimationClip::REEL(oldReel) = &mut self.clips[self.currClipIndex as usize] {
+            backupTextureIndex = oldReel.currTextureIndex;
+            backupTimer = oldReel.timer;
+            oldReel.Reset();
+        } else {
+            panic!()
+        }
+        self.currClipIndex = clipIndexToSwitchTo as u32;
+        if let AnimationClip::REEL(newReel) = &mut self.clips[self.currClipIndex as usize] {
+            newReel.currTextureIndex = backupTextureIndex;
+            newReel.timer = backupTimer;
         }
     }
 }
