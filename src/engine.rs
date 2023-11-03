@@ -305,20 +305,6 @@ impl GameEngine {
 
         // For each enemy...
         for e in &mut self.enemies {
-            // Decrement timer
-            e.walkTimer -= 0.1;
-            if e.walkTimer <= 0.0 {
-                // Increment walking sprite num
-                let nextWalkingSpriteNum = e.walkSpriteNum + 1;
-                if nextWalkingSpriteNum > 4 {
-                    e.walkSpriteNum = 1;
-                } else {
-                    e.walkSpriteNum = nextWalkingSpriteNum;
-                }
-                // Reset timer
-                e.walkTimer = 1.0;
-            }
-
             // Move enemies or change direction
             let proposedLocation = e.location + e.viewDir*0.01;
             let proposedTileCoord = iPoint2::from(proposedLocation);
@@ -328,6 +314,9 @@ impl GameEngine {
             } else {
                 e.viewDir = RandomUnitVec();
             }
+
+            // Update animation reel
+            e.Update();
 
             // Calculate and inject sprites into appropriate tiles
             let tileCoord: iPoint2 = e.location.into();

@@ -2,6 +2,7 @@ use crate::multimedia::TextureType;
 use crate::tiles::{Sprite, TextureHandle};
 use crate::utils::vec2d::{Dot, iPoint2, Point2, Vec2};
 use std::f64::consts::PI;
+use crate::animation::{AnimationClip, AnimationMagazine, AnimationReel};
 
 pub enum EnemyType {
     GUARD,
@@ -14,19 +15,60 @@ pub struct Enemy {
     pub location: Point2,
     pub tile: iPoint2,
     pub viewDir: Vec2,
+    pub AM_enemySprites: AnimationMagazine
+}
 
-    pub walkTimer: f64,
-    pub walkSpriteNum: i32
+fn GenerateEnemyAnimationMagazine(textureType: TextureType) -> AnimationMagazine {
+    let mut AM = AnimationMagazine::New(Vec::new(), 0);
+    for i in 0..8 {
+        AM.clips.push(
+            AnimationClip::REEL(
+                AnimationReel::New(
+                    vec![
+                        //TextureHandle::New(textureType, 1+i),
+                        TextureHandle::New(textureType, 9+i),
+                        TextureHandle::New(textureType, 17+i),
+                        TextureHandle::New(textureType, 25+i),
+                        TextureHandle::New(textureType, 33+i)
+                    ],
+                    0.3,
+                    0.02,
+                    None
+                )
+            )
+        );
+    }
+    AM
 }
 
 impl Enemy {
-    pub fn CalculateSprite(&self, playerViewDir: Vec2) -> Sprite {
-        let textureType = match self.enemyType {
-            EnemyType::GUARD => TextureType::GUARD,
-            EnemyType::OFFICER => TextureType::OFFICER,
-            EnemyType::SS => TextureType::SS
+    pub fn New(enemyType: EnemyType, location: Point2, tile: iPoint2, viewDir: Vec2) -> Self {
+        let AM_enemySprites: AnimationMagazine =  match enemyType {
+            EnemyType::GUARD => {
+                GenerateEnemyAnimationMagazine(TextureType::GUARD)
+            },
+            EnemyType::OFFICER => {
+                GenerateEnemyAnimationMagazine(TextureType::OFFICER)
+            },
+            EnemyType::SS => {
+                GenerateEnemyAnimationMagazine(TextureType::SS)
+            },
         };
 
+        Self {
+            enemyType,
+            location,
+            tile,
+            viewDir,
+            AM_enemySprites
+        }
+    }
+
+    pub fn Update(&mut self) {
+        self.AM_enemySprites.Update();
+    }
+
+    pub fn CalculateSprite(&mut self, playerViewDir: Vec2) -> Sprite {
         let enemyViewDir = self.viewDir;
         let enemyEastDir = self.viewDir.Rotate(-PI/2.0);
 
@@ -41,42 +83,31 @@ impl Enemy {
             }
         };
 
-        let textureID = {
-            self.CalculateWalkingSpriteID(
-                {
-                    if (angle >= 15.0*PI/8.0 && angle <= 2.0*PI) || (angle >= 0.0 && angle < PI/8.0) {
-                        3
-                    } else if angle >= PI/8.0 && angle < 3.0*PI/8.0 {
-                        4
-                    } else if angle >= 3.0*PI/8.0 && angle < 5.0*PI/8.0 {
-                        5
-                    } else if angle >= 5.0*PI/8.0 && angle < 7.0*PI/8.0 {
-                        6
-                    } else if angle >= 7.0*PI/8.0 && angle < 9.0*PI/8.0 {
-                        7
-                    } else if angle >= 9.0*PI/8.0 && angle < 11.0*PI/8.0 {
-                        8
-                    } else if angle >= 11.0*PI/8.0 && angle < 13.0*PI/8.0 {
-                        1
-                    } else {
-                        2
-                    }
-                }
-            )
+        let currClipIndex = {
+            if (angle >= 15.0*PI/8.0 && angle <= 2.0*PI) || (angle >= 0.0 && angle < PI/8.0) {
+                3
+            } else if angle >= PI/8.0 && angle < 3.0*PI/8.0 {
+                4
+            } else if angle >= 3.0*PI/8.0 && angle < 5.0*PI/8.0 {
+                5
+            } else if angle >= 5.0*PI/8.0 && angle < 7.0*PI/8.0 {
+                6
+            } else if angle >= 7.0*PI/8.0 && angle < 9.0*PI/8.0 {
+                7
+            } else if angle >= 9.0*PI/8.0 && angle < 11.0*PI/8.0 {
+                8
+            } else if angle >= 11.0*PI/8.0 && angle < 13.0*PI/8.0 {
+                1
+            } else {
+                2
+            }
         };
 
-        let textureHandle = TextureHandle {
-            textureType,
-            ID: textureID
-        };
+        let textureHandle = self.AM_enemySprites.GetCurrEnemyTexture(currClipIndex-1);
 
         Sprite {
             textureHandle,
             location: self.location
         }
-    }
-
-    fn CalculateWalkingSpriteID(&self, columnNum: i32) -> i32 {
-        columnNum + 8*self.walkSpriteNum
     }
 }

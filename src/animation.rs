@@ -2,8 +2,8 @@ use crate::tiles::TextureHandle;
 
 #[derive(Clone)]
 pub struct AnimationReel {
-    textures: Vec<TextureHandle>,
-    currTextureIndex: u32,
+    pub textures: Vec<TextureHandle>,
+    pub currTextureIndex: u32,
 
     timeInterval: f64,
     perFrameTimeIncrement: f64,
@@ -67,7 +67,7 @@ pub enum AnimationClip {
 
 #[derive(Clone)]
 pub struct AnimationMagazine {
-    clips: Vec<AnimationClip>,
+    pub clips: Vec<AnimationClip>,
     pub currClipIndex: u32
 }
 
@@ -99,6 +99,26 @@ impl AnimationMagazine {
             }
             AnimationClip::REEL(reel) => {
                 reel.textures[reel.currTextureIndex as usize]
+            }
+        }
+    }
+
+    pub fn GetCurrEnemyTexture(&self, currClipIndex: usize) -> TextureHandle {
+        let currTextureIndex = match &self.clips[self.currClipIndex as usize] {
+            AnimationClip::STATIC(_) => {
+                panic!()
+            }
+            AnimationClip::REEL(reel) => {
+                reel.currTextureIndex
+            }
+        };
+
+        match &self.clips[currClipIndex] {
+            AnimationClip::STATIC(_) => {
+                panic!()
+            }
+            AnimationClip::REEL(reel) => {
+                reel.textures[currTextureIndex as usize]
             }
         }
     }

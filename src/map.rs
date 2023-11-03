@@ -49,14 +49,12 @@ impl Map {
                             sprites.push(guard);
 
                         enemies.push(
-                            Enemy {
-                                enemyType: EnemyType::GUARD,
-                                location: spriteLocation,
-                                tile: spriteTile,
-                                viewDir: RandomUnitVec(),
-                                walkTimer: 1.0,
-                                walkSpriteNum: 1
-                            }
+                            Enemy::New(
+                                EnemyType::GUARD,
+                                spriteLocation,
+                                spriteTile,
+                                RandomUnitVec()
+                            )
                         );
 
                         Tile::EMPTY(EmptyTile::New(Some(sprites)))
@@ -68,15 +66,12 @@ impl Map {
                         };
 
                         enemies.push(
-                            Enemy {
-                                enemyType: EnemyType::OFFICER,
-                                location: spriteLocation,
-                                tile: spriteTile,
-                                viewDir: RandomUnitVec(),
-                                walkTimer: 1.0,
-                                walkSpriteNum: 1
-
-                            }
+                            Enemy::New(
+                                EnemyType::OFFICER,
+                                spriteLocation,
+                                spriteTile,
+                                RandomUnitVec()
+                            )
                         );
 
                         let mut sprites: Vec<Sprite> = Vec::new();
@@ -91,15 +86,12 @@ impl Map {
                         };
 
                         enemies.push(
-                            Enemy {
-                                enemyType: EnemyType::SS,
-                                location: spriteLocation,
-                                tile: spriteTile,
-                                viewDir: RandomUnitVec(),
-                                walkTimer: 1.0,
-                                walkSpriteNum: 1
-
-                            }
+                            Enemy::New(
+                                EnemyType::SS,
+                                spriteLocation,
+                                spriteTile,
+                                RandomUnitVec()
+                            )
                         );
 
                         let mut sprites: Vec<Sprite> = Vec::new();
