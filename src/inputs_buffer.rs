@@ -4,6 +4,7 @@ use sdl2::{
     keyboard::Keycode,
     event::Event::*,
 };
+use sdl2::mouse::MouseButton;
 
 #[derive(Default, Debug)]
 pub enum lookCommand_t {
@@ -43,6 +44,7 @@ pub struct InputsBuffer {
     pub quit: bool,
 
     // Mouse related
+    pub fireWeapon: bool,
     pub mouseAbsXrel: i32,
     pub prevXrel: i32,
     pub windowLock: bool
@@ -71,7 +73,17 @@ impl InputsBuffer {
                         self.lookCommand = lookCommand_t::LEFT;
                     }
                     self.mouseAbsXrel = currXrel.abs();
-                }
+                },
+                MouseButtonDown { mouse_btn, .. } => {
+                    if mouse_btn == MouseButton::Left {
+                        self.fireWeapon = true;
+                    }
+                },
+                MouseButtonUp { mouse_btn, .. } => {
+                    if mouse_btn == MouseButton::Left {
+                        self.fireWeapon = false;
+                    }
+                },
                 _ => {}
             }
         }

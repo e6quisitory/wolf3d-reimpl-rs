@@ -237,7 +237,7 @@ impl GameEngine {
 
     fn DrawWeapon(&mut self) {
         let screenRect = Rect::new(self.weaponRenderTopLeft.x(), self.weaponRenderTopLeft.y(), self.weaponRenderPitch as u32, self.weaponRenderPitch as u32);
-        let textureHandle = TextureHandle::New(TextureType::WEAPON, 6);
+        let textureHandle = self.player.AM_weapon.GetCurrTexture();
         let texture = self.multimedia.assets.GetTexture(textureHandle);
         let textureRect = Rect::new(0, 0, TEXTURE_PITCH, TEXTURE_PITCH);
         let _ = self.multimedia.sdlCanvas.copy(texture, textureRect, screenRect);

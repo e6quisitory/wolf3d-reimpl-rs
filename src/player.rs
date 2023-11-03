@@ -1,19 +1,22 @@
 use std::f64::consts::PI;
-
+use crate::animation::{AnimationClip, AnimationMagazine, AnimationReel};
 use crate::inputs_buffer::{InputsBuffer, lookCommand_t, moveCommand_t};
 use crate::map::Map;
-use crate::tiles::{Tile, DoorStatus};
+use crate::tiles::{Tile, DoorStatus, TextureHandle};
 use crate::utils::dda::RayCursor;
 use crate::utils::ray::Ray;
 use crate::utils::vec2d::Vec2;
 use super::utils::vec2d::Point2;
 use crate::inputs_buffer::doorCommand_t;
+use crate::multimedia::TextureType;
 
 pub struct Player {
     pub location: Point2,
     pub viewDir: Vec2,
     pub east: Vec2,
     pub west: Vec2,
+
+    pub AM_weapon: AnimationMagazine
 }
 
 impl Player {
@@ -22,11 +25,25 @@ impl Player {
         let east = viewDir.Rotate(-PI/2.0);
         let west = viewDir.Rotate(PI/2.0);
 
+        let AM_weapon = AnimationMagazine::New(vec![
+            AnimationClip::STATIC(
+                TextureHandle::New(TextureType::WEAPON, 6)
+            ),
+            AnimationClip::REEL(
+                AnimationReel::New(vec![
+                    TextureHandle::New(TextureType::WEAPON, 7),
+                    TextureHandle::New(TextureType::WEAPON, 8),
+                    TextureHandle::New(TextureType::WEAPON, 9)
+                ], 0.15, 0.02, Some(0))
+            )
+        ], 0);
+
         Player {
             location,
             viewDir,
             east,
-            west
+            west,
+            AM_weapon
         }
     }
 
@@ -84,6 +101,12 @@ impl Player {
             },
             _ => {}
         }
+
+        if inputsBuffer.fireWeapon {
+            self.AM_weapon.currClipIndex = 1;
+        }
+        self.AM_weapon.Update();
+
     }
 
     fn MoveIfValid(&mut self, proposedLocation: Point2, map: &Map) {
