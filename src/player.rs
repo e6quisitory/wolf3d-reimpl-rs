@@ -25,7 +25,7 @@ impl Player {
         let east = viewDir.Rotate(-PI/2.0);
         let west = viewDir.Rotate(PI/2.0);
 
-        let AM_weapon = AnimationMagazine::New(vec![
+        let AM_pistol = AnimationMagazine::New(vec![
             AnimationClip::STATIC(
                 TextureHandle::New(TextureType::WEAPON, 6)
             ),
@@ -43,7 +43,7 @@ impl Player {
             viewDir,
             east,
             west,
-            AM_weapon
+            AM_weapon: AM_pistol
         }
     }
 
@@ -102,11 +102,10 @@ impl Player {
             _ => {}
         }
 
+        self.AM_weapon.Update();
         if inputsBuffer.fireWeapon {
             self.AM_weapon.currClipIndex = 1;
         }
-        self.AM_weapon.Update();
-
     }
 
     fn MoveIfValid(&mut self, proposedLocation: Point2, map: &Map) {

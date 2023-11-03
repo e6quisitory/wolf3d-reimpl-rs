@@ -5,12 +5,13 @@ use crate::{
     multimedia::{Multimedia, LightTexture, TextureType},
     inputs_buffer::InputsBuffer,
     player::Player,
-    map::{Map, Enemy},
+    map::Map,
     utils::{
         ray::Ray,
         dda::RayCursor, vec2d::{Dot, Vec2, Point2, iPoint2, RandomUnitVec}, conventions::TEXTURE_PITCH
     }, tiles::{Tile, TextureHandle, Sprite, WallSlice}
 };
+use crate::enemy::Enemy;
 use crate::utils::vec2d::iVec2;
 
 struct SpriteRenderData {

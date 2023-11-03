@@ -8,6 +8,7 @@ mod map;
 mod tiles;
 mod engine;
 mod animation;
+mod enemy;
 
 use engine::GameEngine;
 
