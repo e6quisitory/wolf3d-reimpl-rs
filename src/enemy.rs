@@ -1,13 +1,35 @@
 use crate::multimedia::TextureType;
 use crate::tiles::{Sprite, TextureHandle};
-use crate::utils::vec2d::{Dot, iPoint2, Point2, Vec2};
+use crate::utils::vec2d::{Dot, iPoint2, Point2, RandomUnitVec, Vec2};
 use std::f64::consts::PI;
 use crate::animation::{AnimationClip, AnimationMagazine, AnimationReel};
+use crate::map::Map;
+use crate::player::Player;
 
+#[derive(PartialEq)]
 pub enum EnemyType {
     GUARD,
     OFFICER,
     SS
+}
+
+#[derive(PartialEq)]
+enum EnemyState {
+    IDLE,
+    DAMAGE,
+    DEAD
+}
+
+pub struct EnemyInputsBuffer {
+    pub damage: bool
+}
+
+impl EnemyInputsBuffer {
+    pub fn New() -> Self {
+        Self {
+            damage: false
+        }
+    }
 }
 
 pub struct Enemy {
@@ -15,11 +37,15 @@ pub struct Enemy {
     pub location: Point2,
     pub tile: iPoint2,
     pub viewDir: Vec2,
-    pub AM_enemySprites: AnimationMagazine
+    pub AM_enemySprites: AnimationMagazine,
+    currState: EnemyState,
+    pub inputsBuffer: EnemyInputsBuffer,
+    health: i32
 }
 
 fn GenerateEnemyAnimationMagazine(textureType: TextureType) -> AnimationMagazine {
     let mut AM = AnimationMagazine::New(Vec::new(), 0);
+    // Clips 0 - 7
     for i in 0..8 {
         AM.clips.push(
             AnimationClip::REEL(
@@ -38,7 +64,46 @@ fn GenerateEnemyAnimationMagazine(textureType: TextureType) -> AnimationMagazine
             )
         );
     }
-    AM
+
+    // Clip 8 - damage
+    AM.clips.push(
+        AnimationClip::REEL(
+            AnimationReel::New(
+                vec![
+                    TextureHandle::New(textureType, 41)
+                ],
+                0.3,
+                0.02,
+                Some(0)
+            )
+        )
+    );
+
+    // Clip 9 - death animation
+    AM.clips.push(
+        AnimationClip::REEL(
+            AnimationReel::New(
+                vec![
+                    TextureHandle::New(textureType, 42),
+                    TextureHandle::New(textureType, 43),
+                    TextureHandle::New(textureType, 44),
+                    TextureHandle::New(textureType, 45)
+                ],
+                0.3,
+                0.04,
+                Some(10)
+            )
+        )
+    );
+
+    // Clip 10 - dead body (static)
+    AM.clips.push(
+        AnimationClip::STATIC (
+            TextureHandle::New(textureType, 45)
+        )
+    );
+
+    return AM;
 }
 
 impl Enemy {
@@ -60,11 +125,45 @@ impl Enemy {
             location,
             tile,
             viewDir,
-            AM_enemySprites
+            AM_enemySprites,
+            currState: EnemyState::IDLE,
+            inputsBuffer: EnemyInputsBuffer::New(),
+            health: 150
         }
     }
 
-    pub fn Update(&mut self) {
+    pub fn Update(&mut self, map: &Map, player: &Player) {
+        match self.currState {
+            EnemyState::IDLE => {
+                if self.inputsBuffer.damage == true {
+                    self.inputsBuffer.damage = false;
+                    self.currState = EnemyState::DAMAGE;
+                } else if self.AM_enemySprites.currClipIndex < 8 {
+                    let proposedLocation = self.location + self.viewDir*0.01;
+                    let proposedTileCoord = iPoint2::from(proposedLocation);
+                    if map.ValidEnemyLocation(proposedLocation, player.location) {
+                        self.location = proposedLocation;
+                        self.tile = proposedTileCoord;
+                    } else {
+                        self.viewDir = RandomUnitVec();
+                    }
+                }
+            },
+            EnemyState::DAMAGE => {
+                self.health -= 20;
+                if self.health > 0 {
+                    self.AM_enemySprites.currClipIndex = 8;
+                    self.currState = EnemyState::IDLE;
+                } else {
+                    self.AM_enemySprites.currClipIndex = 9;
+                    self.currState = EnemyState::DEAD;
+                }
+            },
+            EnemyState::DEAD => {
+                // stay dead lol
+            }
+        }
+
         self.AM_enemySprites.Update();
     }
 
@@ -83,7 +182,7 @@ impl Enemy {
             }
         };
 
-        let currClipIndex = {
+        let angleCorrectClipIndex = {
             if (angle >= 15.0*PI/8.0 && angle <= 2.0*PI) || (angle >= 0.0 && angle < PI/8.0) {
                 2
             } else if angle >= PI/8.0 && angle < 3.0*PI/8.0 {
@@ -103,9 +202,11 @@ impl Enemy {
             }
         };
 
-        if currClipIndex != self.AM_enemySprites.currClipIndex {
-            self.AM_enemySprites.SwitchClipIndexWithTimeCopy(currClipIndex as usize);
+        let currClipIndex = self.AM_enemySprites.currClipIndex;
+        if currClipIndex < 8 && angleCorrectClipIndex != currClipIndex {
+            self.AM_enemySprites.SwitchClipIndexWithTimeCopy(angleCorrectClipIndex as usize);
         }
+
         let textureHandle = self.AM_enemySprites.GetCurrTexture();
 
         Sprite {

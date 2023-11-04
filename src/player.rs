@@ -1,5 +1,6 @@
 use std::f64::consts::PI;
 use crate::animation::{AnimationClip, AnimationMagazine, AnimationReel};
+use crate::enemy::Enemy;
 use crate::inputs_buffer::{InputsBuffer, lookCommand_t, moveCommand_t};
 use crate::map::Map;
 use crate::tiles::{Tile, DoorStatus, TextureHandle};
@@ -48,7 +49,7 @@ impl Player {
         }
     }
 
-    pub fn Update(&mut self, inputsBuffer: &InputsBuffer, map: &mut Map, moveIncr: f64, swivelIncr: f64) {
+    pub fn Update(&mut self, inputsBuffer: &InputsBuffer, map: &mut Map, enemies: &mut Vec<Enemy>, moveIncr: f64, swivelIncr: f64) {
 
         let mut proposedLoc: Point2 = self.location;
 
@@ -106,6 +107,44 @@ impl Player {
         self.AM_weapon.Update();
         if inputsBuffer.fireWeapon {
             self.AM_weapon.currClipIndex = 1;
+
+            let mut rayCursor = RayCursor::New(Ray::New(self.location, self.viewDir), self.location);
+    'outer: while map.WithinMap(rayCursor.hitTile) {
+                rayCursor.GoToNextHit();
+                match map.GetMutTile(rayCursor.hitTile) {
+                    Tile::EMPTY(emptyTile) => {
+                        if emptyTile.enemySprites.len() > 0 {
+                            for e in &mut *enemies {
+                                if e.tile == rayCursor.hitTile {
+                                    e.inputsBuffer.damage = true;
+                                    break 'outer;
+                                }
+                            }
+                        } else {
+                            continue;
+                        }
+                    },
+                    Tile::OBJECT(objectTile) => {
+                        if objectTile.enemySprites.len() > 0 {
+                            for e in &mut *enemies {
+                                if e.tile == rayCursor.hitTile {
+                                    e.inputsBuffer.damage = true;
+                                    break 'outer;
+                                }
+                            }
+                        } else {
+                            continue;
+                        }
+                    },
+                    Tile::NONE => panic!(),
+                    _ => {
+                        break;
+                    }
+                }
+
+            }
+
+
         }
     }
 

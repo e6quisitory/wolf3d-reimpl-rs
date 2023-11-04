@@ -8,7 +8,7 @@ use crate::{
     map::Map,
     utils::{
         ray::Ray,
-        dda::RayCursor, vec2d::{Dot, Vec2, Point2, iPoint2, RandomUnitVec}, conventions::TEXTURE_PITCH
+        dda::RayCursor, vec2d::{Dot, Vec2, Point2, iPoint2}, conventions::TEXTURE_PITCH
     }, tiles::{Tile, TextureHandle, Sprite, WallSlice}
 };
 use crate::enemy::Enemy;
@@ -106,7 +106,7 @@ impl GameEngine {
     fn Update(&mut self) {
         self.inputsBuffer.Update(&mut self.multimedia.sdlContexts.sdlContext, &mut self.multimedia.sdlEventPump);
         self.UpdateEnemies();
-        self.player.Update(&self.inputsBuffer, &mut self.map, self.playerMoveIncr, self.playerSwivelIncr);
+        self.player.Update(&self.inputsBuffer, &mut self.map, &mut self.enemies, self.playerMoveIncr, self.playerSwivelIncr);
         self.map.UpdateDoors(self.doorMoveIncr, self.doorTimerIncr, self.player.location);
     }
 
@@ -305,18 +305,8 @@ impl GameEngine {
 
         // For each enemy...
         for e in &mut self.enemies {
-            // Move enemies or change direction
-            let proposedLocation = e.location + e.viewDir*0.01;
-            let proposedTileCoord = iPoint2::from(proposedLocation);
-            if self.map.ValidEnemyLocation(proposedLocation, self.player.location) {
-                e.location = proposedLocation;
-                e.tile = proposedTileCoord;
-            } else {
-                e.viewDir = RandomUnitVec();
-            }
 
-            // Update animation reel
-            e.Update();
+            e.Update(&self.map, &self.player);
 
             // Calculate and inject sprites into appropriate tiles
             let tileCoord: iPoint2 = e.location.into();

@@ -6,4 +6,9 @@
 
     I guess for multiplayer, will need to make a seperate type of enemy that still has a state machine for taking damage, switching textures, etc. but without enemy AI (player controlled)
 
+
+    =====> Implemented state machine talked about above, but it's kinda hacky and I'd like it to be cleaner.
+           Also a lot of bugs with shooting; shooting through tiles with dead enemies and doors doesn't work
+
+
 - Add a time module that normalizes game time. Takes in vsync monitor refresh rate as input and returns a normalized time interface for all parts of the engine that rely on time
