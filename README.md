@@ -5,9 +5,9 @@
 I've previously [implemented](https://github.com/e6quisitory/wolf3d-clone) a Wolfenstein 3D renderer in C++. Now, I've decided it's time to hop on the Rust bandwagon. So, as a first project, to teach myself the language, I'm porting over the project to Rust.
 
 ### Remaining
-- [ ] Minimap
-- [ ] Weapons
 - [ ] Enemy AI
+- [ ] More weapons
+- [ ] Minimap
 - [ ] Port to [WebAssembly](https://rustwasm.github.io/docs/book)
 - [ ] Networked multiplayer _(aspirational)_
 
@@ -21,9 +21,10 @@ I've previously [implemented](https://github.com/e6quisitory/wolf3d-clone) a Wol
 - [x] Mouse to look around
 - [x] Sprites (objects & enemies)
 - [x] Moving enemies
+- [x] Weapons
 
 ## Current Engine Demo
-https://github.com/e6quisitory/wolf3d-clone-rs/assets/25702188/af591bf3-c4cc-4f11-87ce-a71f3f310d98
+https://github.com/e6quisitory/wolf3d-clone-rs/assets/25702188/c84cd321-ca95-4f4e-8ccf-91a684fb45e7
 
 ## Build Instructions
 Assuming you have `rustc` and `cargo` installed (through `rustup`, most likely), as well as [SDL2](https://github.com/libsdl-org/SDL/releases), clone this repo, then, from its root, run the following command.

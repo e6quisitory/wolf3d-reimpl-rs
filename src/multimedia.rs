@@ -119,15 +119,15 @@ impl RenderParams {
         let mut castingRayAngles: Vec<(f64, f64)> = vec![(0.0, 0.0); windowWidth];
         let projectionPlaneWidth: f64 = 2.0 * DegreesToRadians(fov / 2.0).tan();
         let segmentLength: f64 = projectionPlaneWidth / windowWidth as f64;
-        for x in 0..windowWidth-1 {
+        for x in 0..windowWidth - 1 {
             let currAngle = (-(x as f64 * segmentLength - (projectionPlaneWidth / 2.0))).atan();
             castingRayAngles[x] = (currAngle, currAngle.cos());
         }
 
-        let projPlaneDist = (windowWidth as f64 / 2.0)/DegreesToRadians(fov/2.0).tan();
-        
+        let projPlaneDist = (windowWidth as f64 / 2.0) / DegreesToRadians(fov / 2.0).tan();
+
         // Render height proportionality constant ; takes into account screen aspect ratio
-        let renderHeightProprConst = 1.15 * (windowWidth as f64) / ((16.0 / 9.0) * (fov / 72.0));  
+        let renderHeightProprConst = 1.15 * (windowWidth as f64) / ((16.0 / 9.0) * (fov / 72.0));
 
         RenderParams {
             fov,
@@ -139,11 +139,13 @@ impl RenderParams {
 }
 
 pub struct Assets {
-    textureSheets: HashMap<TextureType, TextureSheet>,
+    textureSheets: HashMap<TextureType, TextureSheet>
 }
 
 impl Assets {
     pub fn New(sdlTextureCreator: &TextureCreator<WindowContext>) -> Self {
+
+        // Texture sheets
         let wall_TS    = TextureSheet::New(sdlTextureCreator,  "assets/wall_textures.bmp", 6, 110, false);
         let object_TS  = TextureSheet::New(sdlTextureCreator,  "assets/objects.bmp", 5, 50, true);
         let guard_TS   = TextureSheet::New(sdlTextureCreator,  "assets/guard.bmp", 8, 51, true);
@@ -158,6 +160,9 @@ impl Assets {
             textureSheets.insert(TextureType::OFFICER, officer_TS);
             textureSheets.insert(TextureType::SS, SS_TS);
             textureSheets.insert(TextureType::WEAPON, weapons_TS);
+
+        // Animation texture reel sets
+
 
         Self {
             textureSheets
