@@ -1,0 +1,9 @@
+- Need proper state machine for enemies
+    
+    This will handle all enemy logic, including moving, taking damage (modifying health), switching curr animation clip, etc.
+
+    Will also make it simple to add in enemy AI later.
+
+    I guess for multiplayer, will need to make a seperate type of enemy that still has a state machine for taking damage, switching textures, etc. but without enemy AI (player controlled)
+
+- Add a time module that normalizes game time. Takes in vsync monitor refresh rate as input and returns a normalized time interface for all parts of the engine that rely on time

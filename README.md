@@ -33,6 +33,8 @@ cargo run --release
 ## Controls
 - `W` `A` `S` `D` to move around
 - Mouse (or trackpad) to look around
+- Left mouse click to shoot
+- `Space` to open doors
 - `~` to unlock/relock mouse from game window
 - `Esc` to quit game
 
