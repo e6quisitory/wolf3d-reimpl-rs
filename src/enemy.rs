@@ -40,7 +40,7 @@ pub struct Enemy {
     pub AM_enemySprites: AnimationMagazine,
     currState: EnemyState,
     pub inputsBuffer: EnemyInputsBuffer,
-    health: i32
+    pub health: i32
 }
 
 fn GenerateEnemyAnimationMagazine(textureType: TextureType) -> AnimationMagazine {
@@ -90,7 +90,7 @@ fn GenerateEnemyAnimationMagazine(textureType: TextureType) -> AnimationMagazine
                     TextureHandle::New(textureType, 45)
                 ],
                 0.3,
-                0.04,
+                0.045,
                 Some(10)
             )
         )

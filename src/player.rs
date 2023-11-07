@@ -116,10 +116,13 @@ impl Player {
                         if emptyTile.enemySprites.len() > 0 {
                             for e in &mut *enemies {
                                 if e.tile == rayCursor.hitTile {
-                                    e.inputsBuffer.damage = true;
-                                    break 'outer;
+                                    if e.health > 0 {
+                                        e.inputsBuffer.damage = true;
+                                        break 'outer;
+                                    }
                                 }
                             }
+                            continue;
                         } else {
                             continue;
                         }
@@ -134,6 +137,13 @@ impl Player {
                             }
                         } else {
                             continue;
+                        }
+                    },
+                    Tile::DOOR(door) => {
+                        if door.GetWallSlice(&mut rayCursor).is_none() {
+                            continue;
+                        } else {
+                            break;
                         }
                     },
                     Tile::NONE => panic!(),
