@@ -1,5 +1,5 @@
 [package]
-name = "wolf3d-clone-rs"
+name = "wolf3d-reimpl-rs"
 version = "0.1.0"
 edition = "2021"
 
