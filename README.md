@@ -14,7 +14,7 @@ https://github.com/e6quisitory/wolf3d-clone-rs/assets/25702188/c84cd321-ca95-4f4
 - [ ] WAD parser
 - [ ] Minimap
 - [ ] Networked multiplayer _(aspirational)_
-- [ ] Port to [WebAssembly](https://rustwasm.github.io/docs/book)
+- [ ] Compile to [WebAssembly](https://rustwasm.github.io/docs/book)
 
 ### Completed
 - [x] Raycasting
