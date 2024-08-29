@@ -40,10 +40,11 @@ pub struct Enemy {
     pub AM_enemySprites: AnimationMagazine,
     currState: EnemyState,
     pub inputsBuffer: EnemyInputsBuffer,
-    pub health: i32
+    pub health: i32,
+    refreshRate: usize
 }
 
-fn GenerateEnemyAnimationMagazine(textureType: TextureType) -> AnimationMagazine {
+fn GenerateEnemyAnimationMagazine(textureType: TextureType, refreshRate: usize) -> AnimationMagazine {
     let mut AM = AnimationMagazine::New(Vec::new(), 0);
     // Clips 0 - 7
     for i in 0..8 {
@@ -58,7 +59,7 @@ fn GenerateEnemyAnimationMagazine(textureType: TextureType) -> AnimationMagazine
                         TextureHandle::New(textureType, 33+i)
                     ],
                     0.3,
-                    0.02,
+                    0.02*(60.0/(refreshRate as f64)),
                     None
                 )
             )
@@ -73,7 +74,7 @@ fn GenerateEnemyAnimationMagazine(textureType: TextureType) -> AnimationMagazine
                     TextureHandle::New(textureType, 41)
                 ],
                 0.3,
-                0.02,
+                0.02*(60.0/(refreshRate as f64)),
                 Some(0)
             )
         )
@@ -90,7 +91,7 @@ fn GenerateEnemyAnimationMagazine(textureType: TextureType) -> AnimationMagazine
                     TextureHandle::New(textureType, 45)
                 ],
                 0.3,
-                0.045,
+                0.045*(60.0/(refreshRate as f64)),
                 Some(10)
             )
         )
@@ -107,16 +108,16 @@ fn GenerateEnemyAnimationMagazine(textureType: TextureType) -> AnimationMagazine
 }
 
 impl Enemy {
-    pub fn New(enemyType: EnemyType, location: Point2, tile: iPoint2, viewDir: Vec2) -> Self {
+    pub fn New(enemyType: EnemyType, location: Point2, tile: iPoint2, viewDir: Vec2, refreshRate: usize) -> Self {
         let AM_enemySprites: AnimationMagazine =  match enemyType {
             EnemyType::GUARD => {
-                GenerateEnemyAnimationMagazine(TextureType::GUARD)
+                GenerateEnemyAnimationMagazine(TextureType::GUARD, refreshRate)
             },
             EnemyType::OFFICER => {
-                GenerateEnemyAnimationMagazine(TextureType::OFFICER)
+                GenerateEnemyAnimationMagazine(TextureType::OFFICER, refreshRate)
             },
             EnemyType::SS => {
-                GenerateEnemyAnimationMagazine(TextureType::SS)
+                GenerateEnemyAnimationMagazine(TextureType::SS, refreshRate)
             },
         };
 
@@ -128,7 +129,8 @@ impl Enemy {
             AM_enemySprites,
             currState: EnemyState::IDLE,
             inputsBuffer: EnemyInputsBuffer::New(),
-            health: 150
+            health: 150, 
+            refreshRate
         }
     }
 
@@ -139,7 +141,7 @@ impl Enemy {
                     self.inputsBuffer.damage = false;
                     self.currState = EnemyState::DAMAGE;
                 } else if self.AM_enemySprites.currClipIndex < 8 {
-                    let proposedLocation = self.location + self.viewDir*0.01;
+                    let proposedLocation = self.location + self.viewDir*0.01*(60.0/(self.refreshRate as f64));
                     let proposedTileCoord = iPoint2::from(proposedLocation);
                     if map.ValidEnemyLocation(proposedLocation, player.location) {
                         self.location = proposedLocation;

@@ -13,7 +13,7 @@ pub struct Map {
 }
 
 impl Map {
-    pub fn LoadFromCSV(csvPath: &str) -> (Self, Vec<Enemy>) {
+    pub fn LoadFromCSV(csvPath: &str, refreshRate: usize) -> (Self, Vec<Enemy>) {
         let tileTextureIDs = ParseCSV(csvPath).unwrap();
         let width = tileTextureIDs.ncols() as i32;
         let height = tileTextureIDs.nrows() as i32;
@@ -53,7 +53,8 @@ impl Map {
                                 EnemyType::GUARD,
                                 spriteLocation,
                                 spriteTile,
-                                RandomUnitVec()
+                                RandomUnitVec(),
+                                refreshRate
                             )
                         );
 
@@ -70,7 +71,8 @@ impl Map {
                                 EnemyType::OFFICER,
                                 spriteLocation,
                                 spriteTile,
-                                RandomUnitVec()
+                                RandomUnitVec(),
+                                refreshRate
                             )
                         );
 
@@ -90,7 +92,8 @@ impl Map {
                                 EnemyType::SS,
                                 spriteLocation,
                                 spriteTile,
-                                RandomUnitVec()
+                                RandomUnitVec(),
+                                refreshRate
                             )
                         );
 

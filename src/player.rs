@@ -21,7 +21,7 @@ pub struct Player {
 }
 
 impl Player {
-    pub fn New(location: Point2) -> Self {
+    pub fn New(location: Point2, refreshRate: usize) -> Self {
         let viewDir = Point2::New(1.0, 1.0).UnitVector();
         let east = viewDir.Rotate(-PI/2.0);
         let west = viewDir.Rotate(PI/2.0);
@@ -31,12 +31,16 @@ impl Player {
                 TextureHandle::New(TextureType::WEAPON, 6)
             ),
             AnimationClip::REEL(
-                AnimationReel::New(vec![
-                    TextureHandle::New(TextureType::WEAPON, 7),
-                    TextureHandle::New(TextureType::WEAPON, 8),
-                    TextureHandle::New(TextureType::WEAPON, 9),
-                    TextureHandle::New(TextureType::WEAPON, 9)
-                ], 0.15, 0.05, Some(0))
+                AnimationReel::New(
+                    vec![
+                        TextureHandle::New(TextureType::WEAPON, 7),
+                        TextureHandle::New(TextureType::WEAPON, 8),
+                        TextureHandle::New(TextureType::WEAPON, 9),
+                        TextureHandle::New(TextureType::WEAPON, 9)
+                    ],
+                    0.15,
+                    0.05*(60.0/(refreshRate as f64)),
+                    Some(0))
             )
         ], 0);
 
