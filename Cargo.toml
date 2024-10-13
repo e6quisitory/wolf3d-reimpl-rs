@@ -3,8 +3,6 @@ name = "wolf3d-reimpl-rs"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 csv = "1.2.2"
 ndarray = "0.15.6"
@@ -14,3 +12,11 @@ rand = "0.8.5"
 version = "0.35.2"
 default-features = false
 features = ["image", "unsafe_textures"]
+
+# For bundling into a macOS .app (cargo bundle --release)
+[package.metadata.bundle]
+name = "wolf3d-reimpl-rs"
+identifier = "com.e6quisitory.wolf3d"
+icon = ["assets/icon.png"]
+version = "0.1.0"
+resources = ["assets"]
