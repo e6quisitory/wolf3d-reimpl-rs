@@ -22,7 +22,7 @@ pub struct Player {
 
 impl Player {
     pub fn New(location: Point2, refreshRate: usize) -> Self {
-        let viewDir = Point2::New(1.0, 1.0).UnitVector();
+        let viewDir = Point2::New(-0.46290, 0.88640).UnitVector();
         let east = viewDir.Rotate(-PI/2.0);
         let west = viewDir.Rotate(PI/2.0);
 

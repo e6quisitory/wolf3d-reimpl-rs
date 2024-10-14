@@ -53,7 +53,7 @@ impl GameEngine {
     pub fn Init(windowWidth: usize, windowHeight: usize, fov: f64, mapCSVPath: &str) -> Self {
         let multimedia = Multimedia::New(windowWidth, windowHeight, fov);
         let inputsBuffer = InputsBuffer{windowLock: true, ..Default::default()};
-        let player = Player::New(Point2::New(2.5, 2.5), multimedia.displayParams.refreshRate);
+        let player = Player::New(Point2::New(22.5, 2.5), multimedia.displayParams.refreshRate);
         let (map, enemies): (Map, Vec<Enemy>) = Map::LoadFromCSV(mapCSVPath, multimedia.displayParams.refreshRate);
         
         let refreshRatePropr = multimedia.displayParams.refreshRate as f64 / 60.0;
